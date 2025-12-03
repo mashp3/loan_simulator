@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 背景色（青色） -->
+    <item android:drawable="@color/splash_background_color" />
+    
+    <!-- 中央にアプリアイコンを配置 -->
+    <item android:gravity="center">
+        <bitmap android:src="@mipmap/ic_launcher" />
+    </item>
+</layer-list>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- スプラッシュスクリーンの背景色（青色） -->
+    <color name="splash_background_color">#1E40AF</color>
+    
+    <!-- その他のアプリカラー -->
+    <color name="primary_color">#1E40AF</color>
+    <color name="transparent">#00000000</color>
+	<color name="ic_launcher_background">#1E40AF</color>
+</resources>
