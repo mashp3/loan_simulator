@@ -19,7 +19,7 @@ class AdService {
     if (Platform.isAndroid) {
       return 'ca-app-pub-3299689382637796/6764277294'; // テスト用ID
     } else if (Platform.isIOS) {
-      return 'ca-app-pub-3940256099942544/2934735716'; // テスト用ID
+      return 'ca-app-pub-3299689382637796/1229694872'; // 本番用iOS広告ID
     }
     return '';
   }
