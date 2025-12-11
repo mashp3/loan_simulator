@@ -1,0 +1,44 @@
+name: loan_simulator
+description: "ローンシミュレータアプリ - スクリーンショット撮影用デモ版"
+publish_to: 'none'
+
+version: 1.0.0+41
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # 数値フォーマット
+  intl: ^0.19.0
+  
+  # ローカルストレージ
+  shared_preferences: ^2.2.2
+  
+  # CSVファイル処理
+  csv: ^6.0.0
+  
+  # ファイル共有機能
+  share_plus: ^10.1.2
+  
+  # 広告（デモ版でも必要 - ただし非表示）
+  google_mobile_ads: ^5.2.0
+  
+  # アプリ内課金（デモ版でも必要 - ただし使用しない）
+  in_app_purchase: ^3.2.0
+  
+  # URLランチャー
+  url_launcher: ^6.2.5
+  
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

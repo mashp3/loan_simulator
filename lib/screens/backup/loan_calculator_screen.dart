@@ -20,7 +20,9 @@ class LoanCalculatorScreen extends StatefulWidget {
   _LoanCalculatorScreenState createState() => _LoanCalculatorScreenState();
 }
 
-class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> {
+class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;  // 画面の状態を保持する
   final _loanAmountController = TextEditingController();
   final _interestRateController = TextEditingController();
   final _loanTermYearsController = TextEditingController();
@@ -465,33 +467,15 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // AutomaticKeepAliveClientMixin用
     return GestureDetector(
       onTap: () {
         // 余白をタップした時にキーボードを閉じる
         FocusScope.of(context).unfocus();
       },
-      child: Scaffold(
-        backgroundColor: Colors.grey.shade50,
-        appBar: AppBar(
-          title: Row(
-            children: [
-              Icon(Icons.calculate, color: Colors.white, size: 28),
-              SizedBox(width: 8),
-              Text(
-                '基本計算',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.indigo.shade600,
-          elevation: 0,
-          centerTitle: false,
-        ),
-        body: SingleChildScrollView(
+      child: Container(
+        color: Colors.grey.shade50,
+        child: SingleChildScrollView(
           controller: _scrollController,
           child: Column(
             children: [
@@ -693,8 +677,8 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> {
               ),
             ],
           ),
-        ),
-      ),
-    );
+        ), // SingleChildScrollView
+      ), // GestureDetector
+    ); // Container
   }
 }

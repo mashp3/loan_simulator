@@ -1,7 +1,7 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:csv/csv.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class RepaymentSchedulePage extends StatelessWidget {
   final List<List<String>> schedule;
@@ -15,58 +15,13 @@ class RepaymentSchedulePage extends StatelessWidget {
     required this.isPremium,
   }) : super(key: key);
 
-  Future<void> _exportCSV(BuildContext context) async {
+  Future<void> _shareCSV(BuildContext context) async {
     if (!isPremium) {
       _showPremiumRequiredDialog(context);
       return;
     }
 
     try {
-      Directory? directory;
-      String folderName = 'LoanCalculator';
-      
-      if (Platform.isAndroid) {
-        // Android: 外部ストレージのDownloadsフォルダまたはアプリ専用フォルダを使用
-        try {
-          directory = Directory('/storage/emulated/0/Download/$folderName');
-          if (!await directory.exists()) {
-            await directory.create(recursive: true);
-          }
-        } catch (e) {
-          // フォールバック: アプリ専用外部ストレージ
-          try {
-            directory = await getExternalStorageDirectory();
-            if (directory != null) {
-              directory = Directory('${directory.path}/$folderName');
-              if (!await directory.exists()) {
-                await directory.create(recursive: true);
-              }
-            }
-          } catch (e2) {
-            // 最終フォールバック: アプリDocumentsフォルダ
-            directory = await getApplicationDocumentsDirectory();
-          }
-        }
-      } else if (Platform.isIOS) {
-        // iOS: アプリのDocumentsフォルダ内に専用フォルダを作成
-        final appDirectory = await getApplicationDocumentsDirectory();
-        directory = Directory('${appDirectory.path}/$folderName');
-        if (!await directory.exists()) {
-          await directory.create(recursive: true);
-        }
-      } else {
-        // その他のプラットフォーム: 基本のDocumentsフォルダ
-        directory = await getApplicationDocumentsDirectory();
-      }
-      
-      // フォールバック: 基本のDocumentsフォルダ
-      directory ??= await getApplicationDocumentsDirectory();
-      
-      final timestamp = DateTime.now();
-      final filename = 'repayment_schedule_${timestamp.year}${timestamp.month.toString().padLeft(2, '0')}${timestamp.day.toString().padLeft(2, '0')}_${timestamp.hour.toString().padLeft(2, '0')}${timestamp.minute.toString().padLeft(2, '0')}.csv';
-      final path = '${directory.path}/$filename';
-      final file = File(path);
-
       // CSVデータ作成（日本語ヘッダー）
       List<List<String>> csvData = [
         ['支払回数', '毎月の支払額', '元金', '利息', '残高', '返済種別']
@@ -74,37 +29,43 @@ class RepaymentSchedulePage extends StatelessWidget {
       csvData.addAll(schedule);
 
       String csv = const ListToCsvConverter().convert(csvData);
-      await file.writeAsString(csv);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('CSVを保存しました'),
-                    Text(
-                      path,
-                      style: TextStyle(fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.lightBlue.shade400,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          duration: Duration(seconds: 4),
+      
+      // ファイル名を生成
+      final timestamp = DateTime.now();
+      final filename = 'repayment_schedule_${timestamp.year}${timestamp.month.toString().padLeft(2, '0')}${timestamp.day.toString().padLeft(2, '0')}_${timestamp.hour.toString().padLeft(2, '0')}${timestamp.minute.toString().padLeft(2, '0')}.csv';
+      
+      // CSVデータを共有
+      final result = await Share.shareXFiles([
+        XFile.fromData(
+          Uint8List.fromList(csv.codeUnits),
+          name: filename,
+          mimeType: 'text/csv',
         ),
+      ], 
+      text: '返済計画表のCSVファイルです。',
+      subject: title,
       );
+
+      // 実際に共有された場合のみ成功メッセージを表示
+      if (result.status == ShareResultStatus.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.share, color: Colors.white),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text('CSVファイルを共有しました'),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.lightBlue.shade400,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -117,8 +78,7 @@ class RepaymentSchedulePage extends StatelessWidget {
           ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
     }
@@ -148,7 +108,7 @@ class RepaymentSchedulePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'CSVエクスポート機能は\nプレミアムプラン限定です',
+              'CSV共有機能は\nプレミアムプラン限定です',
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 20),
@@ -176,7 +136,7 @@ class RepaymentSchedulePage extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 12),
-                  Text('• ローン計算結果の保存\n• データ比較機能\n• ボーナス返済計算\n• 早期返済計算\n• CSVエクスポート\n• 広告非表示'),
+                  Text('• ローン計算結果の保存\n• データ比較機能\n• ボーナス返済計算\n• 早期返済計算\n• CSV共有機能\n• 広告非表示'),
                 ],
               ),
             ),
@@ -210,6 +170,7 @@ class RepaymentSchedulePage extends StatelessWidget {
       elevation: 12,
       shadowColor: Colors.black.withOpacity(0.08),
       margin: EdgeInsets.symmetric(vertical: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: child,
@@ -223,18 +184,18 @@ class RepaymentSchedulePage extends StatelessWidget {
         Container(
           padding: EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.indigo.shade100,
-            borderRadius: BorderRadius.circular(8),
+            color: Colors.indigo.shade600,
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: Colors.indigo.shade600, size: 20),
+          child: Icon(icon, color: Colors.white, size: 24),
         ),
-        SizedBox(width: 12),
+        SizedBox(width: 16),
         Text(
           title,
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: Colors.indigo.shade700,
+            color: Colors.indigo.shade600.withOpacity(0.8),
           ),
         ),
       ],
@@ -250,9 +211,9 @@ class RepaymentSchedulePage extends StatelessWidget {
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            onPressed: () => _exportCSV(context),
-            icon: Icon(Icons.download),
-            tooltip: 'CSVエクスポート',
+            onPressed: () => _shareCSV(context),
+            icon: Icon(Icons.share),
+            tooltip: 'CSV共有',
           ),
         ],
       ),
@@ -261,15 +222,15 @@ class RepaymentSchedulePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // エクスポートボタンカード
+            // 共有ボタンカード
             _buildStyledCard(
               color: Colors.indigo.shade50,
               child: Column(
                 children: [
-                  _buildSectionTitle('データエクスポート', Icons.download),
+                  _buildSectionTitle('データ共有', Icons.share),
                   SizedBox(height: 16),
                   Text(
-                    'CSVファイルとして保存し、Excelなどで詳細な分析ができます',
+                    'CSVファイルを作成してメールやSNSアプリに共有できます\nExcelなどで詳細な分析が可能です',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.indigo.shade700,
@@ -278,11 +239,12 @@ class RepaymentSchedulePage extends StatelessWidget {
                   ),
                   SizedBox(height: 16),
                   ElevatedButton.icon(
-                    onPressed: () => _exportCSV(context),
-                    icon: Icon(Icons.download),
-                    label: Text('CSVとして保存'),
+                    onPressed: () => _shareCSV(context),
+                    icon: Icon(Icons.share),
+                    label: Text('CSVファイルを共有'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.indigo.shade600,
+                      foregroundColor: Colors.white,
                       padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     ),
                   ),

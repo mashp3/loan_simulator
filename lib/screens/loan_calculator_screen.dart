@@ -485,7 +485,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // 入力フォーム
+                  // 入力フォーム 
                   _buildStyledCard(
                     color: Colors.white,
                     child: Column(

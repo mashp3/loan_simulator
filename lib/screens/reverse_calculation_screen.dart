@@ -328,24 +328,14 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: Row(
-            children: [
-              Icon(Icons.error_outline, color: Colors.red.shade600, size: 28),
-              SizedBox(width: 8),
-              Text('入力エラー'),
-            ],
-          ),
-          content: Text(message, style: TextStyle(fontSize: 16)),
+          title: Text('入力エラー'),
+          content: Text(message),
           actions: <Widget>[
-            ElevatedButton(
+            TextButton(
               child: Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.indigo.shade600,
-              ),
             ),
           ],
         );
@@ -353,384 +343,402 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
     );
   }
 
-  Widget _buildStyledCard({Key? key, required Widget child, Color? color}) {
-    return Card(
-      key: key,
-      color: color ?? Colors.white,
-      elevation: 12,
-      shadowColor: Colors.black.withOpacity(0.08),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: EdgeInsets.all(20),
-        child: child,
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title, IconData icon) {
-    return Row(
-      children: [
-        Container(
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.indigo.shade600,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: Colors.white, size: 24),
-        ),
-        SizedBox(width: 16),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.indigo.shade600.withOpacity(0.8),
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
     
-    return Container(
-      color: Colors.grey.shade50,
-      child: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        behavior: HitTestBehavior.opaque,
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ページタイトル
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.indigo.shade600, Colors.indigo.shade800],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+    return Scaffold(
+      body: SingleChildScrollView(
+        controller: _scrollController,
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ページタイトル
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.indigo.shade600, Colors.indigo.shade800],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.indigo.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.indigo.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      '借入診断',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      '月々の返済額から借入可能額を計算',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.9),
-                      ),
-                    ),
-                  ],
-                ),
+                ],
               ),
-
-              SizedBox(height: 16),
-
-              // 基本情報入力
-              _buildStyledCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 毎月の返済額（カンマ区切り対応）
-                    TextField(
-                      controller: _monthlyPaymentController,
-                      decoration: InputDecoration(
-                        labelText: '毎月の返済額(円)',
-                        prefixIcon: Icon(Icons.payments_rounded,
-                            color: Colors.indigo.shade600),
-                      ),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) {
-                        String cleaned = value.replaceAll(',', '');
-                        double? parsed = double.tryParse(cleaned);
-                        if (parsed != null) {
-                          _monthlyPaymentController.value = TextEditingValue(
-                            text: formatter.format(parsed.round()),
-                            selection: TextSelection.collapsed(
-                              offset: formatter.format(parsed.round()).length,
-                            ),
-                          );
-                        }
-                      },
+              child: Column(
+                children: [
+                  Icon(Icons.calculate, color: Colors.white, size: 32),
+                  SizedBox(height: 8),
+                  Text(
+                    '借入診断',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                    SizedBox(height: 16),
-                    // 年利
-                    TextField(
-                      controller: _interestRateController,
-                      decoration: InputDecoration(
-                        labelText: '年利(%)',
-                        prefixIcon: Icon(Icons.percent_rounded,
-                            color: Colors.indigo.shade600),
-                      ),
-                      keyboardType: TextInputType.number,
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    '月々の返済額から借入可能額を計算',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.9),
                     ),
-                    SizedBox(height: 16),
-                    // 返済期間
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _loanTermYearsController,
-                            decoration: InputDecoration(
-                              labelText: '年数',
-                              prefixIcon: Icon(Icons.calendar_today_rounded,
-                                  color: Colors.indigo.shade600),
-                            ),
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                        SizedBox(width: 16),
-                        Expanded(
-                          child: TextField(
-                            controller: _loanTermMonthsController,
-                            decoration: InputDecoration(
-                              labelText: 'ヶ月',
-                              prefixIcon: Icon(Icons.calendar_month_rounded,
-                                  color: Colors.indigo.shade600),
-                            ),
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
 
-              // 返済方式選択
-              _buildStyledCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionTitle('返済方式', Icons.swap_horiz),
-                    SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: RadioListTile<String>(
-                            title: Text('元利均等'),
-                            subtitle: Text('毎月一定額', style: TextStyle(fontSize: 12)),
-                            value: '元利均等',
-                            groupValue: _repaymentMethod,
-                            onChanged: (value) {
-                              setState(() {
-                                _repaymentMethod = value!;
-                                _calculatedAmount = 0;
-                                _repaymentSchedule.clear();
-                              });
-                            },
-                            activeColor: Colors.indigo,
-                          ),
-                        ),
-                        Expanded(
-                          child: RadioListTile<String>(
-                            title: Text('元金均等'),
-                            subtitle: Text('元金一定額', style: TextStyle(fontSize: 12)),
-                            value: '元金均等',
-                            groupValue: _repaymentMethod,
-                            onChanged: (value) {
-                              setState(() {
-                                _repaymentMethod = value!;
-                                _calculatedAmount = 0;
-                                _repaymentSchedule.clear();
-                              });
-                            },
-                            activeColor: Colors.indigo,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+            SizedBox(height: 24),
+
+            // 返済方式選択
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
               ),
-
-              // ボーナス返済設定
-              _buildStyledCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionTitle('ボーナス返済設定', Icons.card_giftcard_outlined),
-                    SizedBox(height: 16),
-                    SwitchListTile(
-                      title: Text('ボーナス返済を利用する'),
-                      value: _enableBonusPayment,
-                      onChanged: (bool value) {
-                        setState(() {
-                          _enableBonusPayment = value;
-                          _calculatedAmount = 0;
-                          _repaymentSchedule.clear();
-                        });
-                      },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '返済方式',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade700,
                     ),
-                    if (_enableBonusPayment) ...[
-                      SizedBox(height: 16),
-                      Container(
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.blue.shade200),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
-                                SizedBox(width: 8),
-                                Text(
-                                  'ボーナス返済月を選択してください',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.blue.shade700,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 12),
-                            
-                            // ボーナス返済月選択
-                            Wrap(
-                              spacing: 12,
-                              children: [
-                                FilterChip(
-                                  label: Text('6月'),
-                                  selected: _bonusMonths.contains(6),
-                                  onSelected: (selected) {
-                                    setState(() {
-                                      if (selected) {
-                                        if (!_bonusMonths.contains(6)) _bonusMonths.add(6);
-                                      } else {
-                                        _bonusMonths.remove(6);
-                                      }
-                                      _calculatedAmount = 0;
-                                      _repaymentSchedule.clear();
-                                    });
-                                  },
-                                  selectedColor: Colors.blue.shade200,
-                                  checkmarkColor: Colors.blue.shade700,
-                                ),
-                                FilterChip(
-                                  label: Text('12月'),
-                                  selected: _bonusMonths.contains(12),
-                                  onSelected: (selected) {
-                                    setState(() {
-                                      if (selected) {
-                                        if (!_bonusMonths.contains(12)) _bonusMonths.add(12);
-                                      } else {
-                                        _bonusMonths.remove(12);
-                                      }
-                                      _calculatedAmount = 0;
-                                      _repaymentSchedule.clear();
-                                    });
-                                  },
-                                  selectedColor: Colors.blue.shade200,
-                                  checkmarkColor: Colors.blue.shade700,
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              '選択した月にボーナス返済が実行されます',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.blue.shade600,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: RadioListTile<String>(
+                          title: Text('元利均等'),
+                          subtitle: Text('毎月一定額', style: TextStyle(fontSize: 12)),
+                          value: '元利均等',
+                          groupValue: _repaymentMethod,
+                          onChanged: (value) {
+                            setState(() {
+                              _repaymentMethod = value!;
+                              _calculatedAmount = 0;
+                              _repaymentSchedule.clear();
+                            });
+                          },
+                          activeColor: Colors.indigo,
                         ),
                       ),
-                      SizedBox(height: 16),
-                      // ボーナス返済額（カンマ区切り対応）
-                      TextField(
-                        controller: _bonusAmountController,
-                        decoration: InputDecoration(
-                          labelText: 'ボーナス返済額(1回あたり)(円)',
-                          prefixIcon: Icon(Icons.card_giftcard,
-                              color: Colors.indigo.shade600),
+                      Expanded(
+                        child: RadioListTile<String>(
+                          title: Text('元金均等'),
+                          subtitle: Text('元金一定額', style: TextStyle(fontSize: 12)),
+                          value: '元金均等',
+                          groupValue: _repaymentMethod,
+                          onChanged: (value) {
+                            setState(() {
+                              _repaymentMethod = value!;
+                              _calculatedAmount = 0;
+                              _repaymentSchedule.clear();
+                            });
+                          },
+                          activeColor: Colors.indigo,
                         ),
-                        keyboardType: TextInputType.number,
-                        onChanged: (value) {
-                          String cleaned = value.replaceAll(',', '');
-                          double? parsed = double.tryParse(cleaned);
-                          if (parsed != null) {
-                            _bonusAmountController.value = TextEditingValue(
-                              text: formatter.format(parsed.round()),
-                              selection: TextSelection.collapsed(
-                                offset: formatter.format(parsed.round()).length,
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 24),
-
-              // 計算ボタン
-              Center(
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.indigo.withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: Offset(0, 6),
                       ),
                     ],
                   ),
-                  child: ElevatedButton.icon(
-                    onPressed: _calculateLoanAmount,
-                    icon: Icon(Icons.calculate_rounded, size: 24),
-                    label: Text(
-                      '借入可能額を計算',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.indigo.shade600,
-                      padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                    ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: 20),
+
+            // 入力フィールド
+            _buildInputSection(),
+
+            SizedBox(height: 24),
+
+            // 計算ボタン
+            Container(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton.icon(
+                onPressed: _calculateLoanAmount,
+                icon: Icon(Icons.calculate, size: 24),
+                label: Text(
+                  _enableBonusPayment ? '借入可能額を計算' : '借入可能額を計算',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  elevation: 4,
                 ),
               ),
+            ),
 
-              SizedBox(height: 32),
+            SizedBox(height: 32),
 
-              // 計算結果表示
-              if (_calculatedAmount > 0) _buildResultSection(),
-            ],
-          ),
+            // 計算結果表示
+            if (_calculatedAmount > 0) _buildResultSection(),
+          ],
         ),
       ),
+    );
+  }
+
+  // 入力セクション構築
+  Widget _buildInputSection() {
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '借入条件を入力',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.indigo.shade700,
+            ),
+          ),
+          SizedBox(height: 20),
+
+          // 毎月の返済額
+          _buildInputField(
+            label: '毎月の返済額',
+            controller: _monthlyPaymentController,
+            suffix: '円',
+            hint: '例: 100000',
+            icon: Icons.payments,
+          ),
+
+          SizedBox(height: 16),
+
+          // 年利
+          _buildInputField(
+            label: '年利',
+            controller: _interestRateController,
+            suffix: '%',
+            hint: '例: 2.5',
+            icon: Icons.percent,
+          ),
+
+          SizedBox(height: 16),
+
+          // 返済期間
+          Row(
+            children: [
+              Expanded(
+                child: _buildInputField(
+                  label: '返済期間（年）',
+                  controller: _loanTermYearsController,
+                  suffix: '年',
+                  hint: '例: 35',
+                  icon: Icons.schedule,
+                ),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: _buildInputField(
+                  label: '（月）',
+                  controller: _loanTermMonthsController,
+                  suffix: 'ヶ月',
+                  hint: '0-11',
+                  icon: Icons.calendar_month,
+                ),
+              ),
+            ],
+          ),
+
+          SizedBox(height: 20),
+
+          // ボーナス返済設定
+          _buildBonusPaymentSection(),
+        ],
+      ),
+    );
+  }
+
+  // ボーナス返済設定セクション
+  Widget _buildBonusPaymentSection() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.card_giftcard, color: Colors.blue.shade600),
+              SizedBox(width: 8),
+              Text(
+                'ボーナス返済',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blue.shade700,
+                ),
+              ),
+              Spacer(),
+              Switch(
+                value: _enableBonusPayment,
+                onChanged: (value) {
+                  setState(() {
+                    _enableBonusPayment = value;
+                    _calculatedAmount = 0;
+                    _repaymentSchedule.clear();
+                  });
+                },
+                activeColor: Colors.blue.shade600,
+              ),
+            ],
+          ),
+          
+          if (_enableBonusPayment) ...[
+            SizedBox(height: 16),
+            
+            // ボーナス返済額
+            _buildInputField(
+              label: 'ボーナス返済額（1回あたり）',
+              controller: _bonusAmountController,
+              suffix: '円',
+              hint: '例: 200000',
+              icon: Icons.monetization_on,
+            ),
+            
+            SizedBox(height: 16),
+            
+            // ボーナス返済月選択
+            Text(
+              'ボーナス返済月',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                FilterChip(
+                  label: Text('6月'),
+                  selected: _bonusMonths.contains(6),
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        if (!_bonusMonths.contains(6)) _bonusMonths.add(6);
+                      } else {
+                        _bonusMonths.remove(6);
+                      }
+                      _calculatedAmount = 0;
+                      _repaymentSchedule.clear();
+                    });
+                  },
+                  selectedColor: Colors.blue.shade200,
+                ),
+                FilterChip(
+                  label: Text('12月'),
+                  selected: _bonusMonths.contains(12),
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        if (!_bonusMonths.contains(12)) _bonusMonths.add(12);
+                      } else {
+                        _bonusMonths.remove(12);
+                      }
+                      _calculatedAmount = 0;
+                      _repaymentSchedule.clear();
+                    });
+                  },
+                  selectedColor: Colors.blue.shade200,
+                ),
+              ],
+            ),
+            
+            SizedBox(height: 8),
+            Text(
+              'ボーナス返済により、より多くの借入が可能になります',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.blue.shade600,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // 入力フィールド構築ヘルパー
+  Widget _buildInputField({
+    required String label,
+    required TextEditingController controller,
+    required String suffix,
+    required String hint,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            hintText: hint,
+            suffixText: suffix,
+            prefixIcon: Icon(icon, color: Colors.indigo.shade400),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.indigo, width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+          ),
+        ),
+      ],
     );
   }
 
@@ -741,100 +749,75 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 計算結果カード
-        _buildStyledCard(
-          color: Colors.green.shade50,
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.green.shade400, Colors.green.shade600],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.green.withOpacity(0.3),
+                blurRadius: 12,
+                offset: Offset(0, 6),
+              ),
+            ],
+          ),
           child: Column(
             children: [
-              _buildSectionTitle(
+              Icon(Icons.account_balance, color: Colors.white, size: 48),
+              SizedBox(height: 16),
+              Text(
                 _enableBonusPayment ? '借入可能額（ボーナス返済込み）' : '借入可能額',
-                Icons.account_balance,
-              ),
-              SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.green.shade400, Colors.green.shade600],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.green.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: Offset(0, 6),
-                    ),
-                  ],
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white.withOpacity(0.9),
                 ),
-                child: Column(
-                  children: [
-                    Icon(Icons.account_balance, color: Colors.white, size: 48),
-                    SizedBox(height: 16),
-                    Text(
-                      '${formatter.format(_calculatedAmount.round())} 円',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+              ),
+              SizedBox(height: 8),
+              Text(
+                '${formatter.format(_calculatedAmount.round())} 円',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
             ],
           ),
         ),
 
-        SizedBox(height: 16),
+        SizedBox(height: 20),
 
         // 返済総額情報
-        _buildStyledCard(
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
           child: Column(
             children: [
-              _buildSectionTitle('返済詳細', Icons.info_outline),
-              SizedBox(height: 16),
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.indigo.shade200),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('総利息額:', style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text('${formatter.format(_totalInterest.round())} 円',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange.shade700)),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('総返済額:', style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text('${formatter.format(_totalAmount.round())} 円',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade700)),
-                      ],
-                    ),
-                    if (_enableBonusPayment) ...[
-                      SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('年間ボーナス返済:', style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text('${formatter.format((double.parse(_bonusAmountController.text.replaceAll(',', '')) * _bonusMonths.length).round())} 円',
-                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade700)),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+              _buildSummaryRow('総利息額', '${formatter.format(_totalInterest.round())} 円', Colors.orange),
+              SizedBox(height: 12),
+              _buildSummaryRow('総返済額', '${formatter.format(_totalAmount.round())} 円', Colors.red),
+              if (_enableBonusPayment) ...[
+                SizedBox(height: 12),
+                _buildSummaryRow('年間ボーナス返済', '${formatter.format((double.parse(_bonusAmountController.text.replaceAll(',', '')) * _bonusMonths.length).round())} 円', Colors.blue),
+              ],
             ],
           ),
         ),
@@ -843,7 +826,8 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
 
         // 返済スケジュール表示ボタン
         if (widget.appState.isPremium && _repaymentSchedule.isNotEmpty)
-          Center(
+          Container(
+            width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
@@ -862,12 +846,37 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.indigo.shade600,
                 foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
+      ],
+    );
+  }
 
-        SizedBox(height: 32),
+  // サマリー行の構築
+  Widget _buildSummaryRow(String label, String value, Color color) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
       ],
     );
   }
