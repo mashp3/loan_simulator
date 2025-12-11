@@ -1,8 +1,8 @@
-name: loan_simulator
-description: "ローンシミュレータアプリ - スクリーンショット撮影用デモ版"
+name: loan_simulator_new
+description: "ローンシミュレータアプリ - 広告・課金機能付き"
 publish_to: 'none'
 
-version: 1.0.0+40
+version: 1.0.0+41
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -21,17 +21,14 @@ dependencies:
   csv: ^6.0.0
   
   # ファイル共有機能
-  share_plus: ^10.1.2
+  share_plus: ^7.2.1
   
-  # 広告（デモ版でも必要 - ただし非表示）
-  google_mobile_ads: ^5.2.0
+  # 広告機能
+  google_mobile_ads: ^5.1.0
   
-  # アプリ内課金（デモ版でも必要 - ただし使用しない）
+  # アプリ内課金
   in_app_purchase: ^3.2.0
-  
-  # URLランチャー
-  url_launcher: ^6.2.5
-  
+
   cupertino_icons: ^1.0.6
 
 dev_dependencies:
@@ -39,6 +36,34 @@ dev_dependencies:
     sdk: flutter
   
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.3.10
 
 flutter:
   uses-material-design: true
+  
+  # アセット追加
+  assets:
+    - assets/icon/
+
+# アプリアイコン設定
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/app_icon.png"
+  adaptive_icon_background: "#1E40AF"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
+
+# スプラッシュスクリーン（起動画面）設定
+flutter_native_splash:
+  color: "#1E40AF"
+  image: "assets/icon/app_icon.png"
+  android: true
+  ios: false
+  android_gravity: center
+  android_12:
+    color: "#1E40AF"
+    image: "assets/icon/app_icon.png"
+    icon_background_color: "#1E40AF"

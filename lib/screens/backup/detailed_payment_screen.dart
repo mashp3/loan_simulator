@@ -392,7 +392,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
       final filename = 'detailed_repayment_schedule_${timestamp.year}${timestamp.month.toString().padLeft(2, '0')}${timestamp.day.toString().padLeft(2, '0')}_${timestamp.hour.toString().padLeft(2, '0')}${timestamp.minute.toString().padLeft(2, '0')}.csv';
       
       // CSVデータを共有
-      await Share.shareXFiles([
+      final result = await Share.shareXFiles([
         XFile.fromData(
           Uint8List.fromList(csv.codeUnits),
           name: filename,
@@ -403,22 +403,24 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
       subject: '詳細返済計画表',
       );
 
-      // 成功メッセージを表示
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.share, color: Colors.white),
-              SizedBox(width: 8),
-              Text('CSVファイルを共有しました'),
-            ],
+      // 実際に共有された場合のみ成功メッセージを表示
+      if (result.status == ShareResultStatus.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.share, color: Colors.white),
+                SizedBox(width: 8),
+                Text('CSVファイルを共有しました'),
+              ],
+            ),
+            backgroundColor: Colors.lightBlue.shade400,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: Duration(seconds: 3),
           ),
-          backgroundColor: Colors.lightBlue.shade400,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          duration: Duration(seconds: 3),
-        ),
-      );
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -558,27 +560,9 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(Icons.auto_awesome, color: Colors.white, size: 28),
-            SizedBox(width: 8),
-            Text(
-              '詳細返済計算',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.indigo.shade600,
-        elevation: 0,
-        centerTitle: false,
-      ),
-      body: GestureDetector(
+    return Container(
+      color: Colors.grey.shade50,
+      child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         behavior: HitTestBehavior.opaque,
         child: SingleChildScrollView(
@@ -674,29 +658,79 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                   if (_enableBonusPayment) ...[
                     SizedBox(height: 16),
                     Container(
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.blue.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'ボーナス返済は毎年6月と12月に実施されます',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.blue.shade700,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+  padding: EdgeInsets.all(16),
+  decoration: BoxDecoration(
+    color: Colors.blue.shade50,
+    borderRadius: BorderRadius.circular(12),
+    border: Border.all(color: Colors.blue.shade200),
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
+        children: [
+          Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
+          SizedBox(width: 8),
+          Text(
+            'ボーナス返済月を選択してください',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.blue.shade700,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+      SizedBox(height: 12),
+      
+      // ボーナス返済月選択
+      Wrap(
+        spacing: 12,
+        children: [
+          FilterChip(
+            label: Text('6月'),
+            selected: _bonusMonths.contains(6),
+            onSelected: (selected) {
+              setState(() {
+                if (selected) {
+                  if (!_bonusMonths.contains(6)) _bonusMonths.add(6);
+                } else {
+                  _bonusMonths.remove(6);
+                }
+              });
+            },
+            selectedColor: Colors.blue.shade200,
+            checkmarkColor: Colors.blue.shade700,
+          ),
+          FilterChip(
+            label: Text('12月'),
+            selected: _bonusMonths.contains(12),
+            onSelected: (selected) {
+              setState(() {
+                if (selected) {
+                  if (!_bonusMonths.contains(12)) _bonusMonths.add(12);
+                } else {
+                  _bonusMonths.remove(12);
+                }
+              });
+            },
+            selectedColor: Colors.blue.shade200,
+            checkmarkColor: Colors.blue.shade700,
+          ),
+        ],
+      ),
+      SizedBox(height: 8),
+      Text(
+        '選択した月にボーナス返済が実行されます',
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.blue.shade600,
+          fontStyle: FontStyle.italic,
+        ),
+      ),
+    ],
+  ),
+),
                     SizedBox(height: 16),
                     TextField(
                       controller: _bonusAmountController,
@@ -792,43 +826,39 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                               ],
                             ),
                             SizedBox(height: 12),
-                            Row(
+                            Column(
                               children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _earlyPayments[index]['month']!,
-                                    decoration: InputDecoration(
-                                      labelText: '返済月',
-                                      prefixIcon: Icon(Icons.event,
-                                          color: Colors.indigo.shade600),
-                                    ),
-                                    keyboardType: TextInputType.number,
+                                TextField(
+                                  controller: _earlyPayments[index]['month']!,
+                                  decoration: InputDecoration(
+                                    labelText: '返済月',
+                                    hintText: '例: 12 (12ヶ月目)',
+                                    prefixIcon: Icon(Icons.event,
+                                        color: Colors.indigo.shade600),
                                   ),
+                                  keyboardType: TextInputType.number,
                                 ),
-                                SizedBox(width: 16),
-                                Expanded(
-                                  flex: 2,
-                                  child: TextField(
-                                    controller: _earlyPayments[index]['amount']!,
-                                    decoration: InputDecoration(
-                                      labelText: '繰上金額(円)',
-                                      prefixIcon: Icon(Icons.trending_up,
-                                          color: Colors.indigo.shade600),
-                                    ),
-                                    keyboardType: TextInputType.number,
-                                    onChanged: (value) {
-                                      String cleaned = value.replaceAll(',', '');
-                                      double? parsed = double.tryParse(cleaned);
-                                      if (parsed != null) {
-                                        _earlyPayments[index]['amount']!.value = TextEditingValue(
-                                          text: formatter.format(parsed.round()),
-                                          selection: TextSelection.collapsed(
-                                            offset: formatter.format(parsed.round()).length,
-                                          ),
-                                        );
-                                      }
-                                    },
+                                SizedBox(height: 16),
+                                TextField(
+                                  controller: _earlyPayments[index]['amount']!,
+                                  decoration: InputDecoration(
+                                    labelText: '繰上金額(円)',
+                                    prefixIcon: Icon(Icons.trending_up,
+                                        color: Colors.indigo.shade600),
                                   ),
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (value) {
+                                    String cleaned = value.replaceAll(',', '');
+                                    double? parsed = double.tryParse(cleaned);
+                                    if (parsed != null) {
+                                      _earlyPayments[index]['amount']!.value = TextEditingValue(
+                                        text: formatter.format(parsed.round()),
+                                        selection: TextSelection.collapsed(
+                                          offset: formatter.format(parsed.round()).length,
+                                        ),
+                                      );
+                                    }
+                                  },
                                 ),
                               ],
                             ),
@@ -959,8 +989,8 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
             ],
           ],
         ),
-      ),
+        ), // SingleChildScrollView
       ), // GestureDetector
-    );
+    ); // Container
   }
 }
