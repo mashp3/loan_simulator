@@ -22,7 +22,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
   final _loanTermYearsController = TextEditingController();
   final _loanTermMonthsController = TextEditingController(text: '0');
 
-  String _repaymentMethod = 'å…ƒåˆ©å‡ç­‰';
+  String _repaymentMethod = '元利均等';
   List<Map<String, TextEditingController>> _prepayments = [];
 
   double _monthlyPaymentBefore = 0;
@@ -72,9 +72,9 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
     }
   }
 
-  // ãƒ­ãƒ¼ãƒ³è¨ˆç®—ï¼ˆé€šå¸¸ãƒ»ç¹°ä¸Šè¿”æ¸ˆä¸¡å¯¾å¿œï¼‰
+  // ローン計算（通常・繰上返済両対応）
   void _calculateLoan({bool includePrepayment = false}) {
-    // ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã‚’é–‰ã˜ã‚‹
+    // キーボードを閉じる
     FocusScope.of(context).unfocus();
 
     double loanAmount =
@@ -86,23 +86,23 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
     double monthlyInterest = annualInterest / 100 / 12;
 
     if (loanAmount <= 0 || totalMonths <= 0) {
-      _showErrorDialog('å…¥åŠ›å€¤ã‚’ç¢ºèªã—ã¦ãã ã•ã„');
+      _showErrorDialog('入力値を確認してください');
       return;
     }
 
-    // ç¹°ä¸Šè¿”æ¸ˆæƒ…å ±ã®æº–å‚™
+    // 繰上返済情報の準備
     Map<int, double> prepaymentMap = {};
     if (includePrepayment) {
       for (var prepay in _prepayments) {
         int? m = int.tryParse(prepay['month']!.text);
         double? a = double.tryParse(prepay['amount']!.text.replaceAll(',', ''));
         if (m != null && a != null && m > 0 && a > 0) {
-          prepaymentMap[m] = (prepaymentMap[m] ?? 0) + a; // åŒæœˆè¤‡æ•°å¯¾å¿œ
+          prepaymentMap[m] = (prepaymentMap[m] ?? 0) + a; // 同月複数対応
         }
       }
     }
 
-    // åŸºæœ¬æœˆã€…è¿”æ¸ˆé¡è¨ˆç®—
+    // 基本月々返済額計算
     double monthlyPayment = loanAmount *
         monthlyInterest /
         (1 - (1 / (pow(1 + monthlyInterest, totalMonths))));
@@ -117,7 +117,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
       double principal = monthlyPayment - interest;
       double currentPayment = monthlyPayment;
 
-      // ç¹°ä¸Šè¿”æ¸ˆãŒã‚ã‚‹æœˆã®å‡¦ç†
+      // 繰上返済がある月の処理
       bool hasPrepayment = includePrepayment && prepaymentMap.containsKey(i);
       if (hasPrepayment) {
         double prepaymentAmount = prepaymentMap[i]!;
@@ -125,7 +125,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
         principal += prepaymentAmount;
       }
 
-      // å…ƒé‡‘ãŒæ®‹é«˜ã‚’è¶…ãˆã‚‹å ´åˆã®èª¿æ•´
+      // 元金が残高を超える場合の調整
       if (principal > balance) {
         principal = balance;
         currentPayment = principal + interest;
@@ -142,7 +142,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
         formatter.format(principal.round()),
         formatter.format(interest.round()),
         formatter.format(balance.round()),
-        hasPrepayment ? 'ç¹°ä¸Šè¿”æ¸ˆ' : '',
+        hasPrepayment ? '繰上返済' : '',
       ]);
 
       if (balance <= 0) break;
@@ -164,7 +164,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
       }
     });
 
-    // è¨ˆç®—çµæžœãŒè¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹éƒ¨åˆ†ã¾ã§è‡ªå‹•ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ï¼ˆç¹°ä¸Šè¿”æ¸ˆè¨ˆç®—æ™‚ã®ã¿ï¼‰
+    // 計算結果が表示されている部分まで自動スクロール（繰上返済計算時のみ）
     if (includePrepayment && _resultKey.currentContext != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final context = _resultKey.currentContext;
@@ -187,7 +187,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
           children: [
             Icon(Icons.error, color: Colors.red),
             SizedBox(width: 8),
-            Text('ã‚¨ãƒ©ãƒ¼'),
+            Text('エラー'),
           ],
         ),
         content: Text(message),
@@ -256,7 +256,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('æ—©æœŸè¿”æ¸ˆè¨ˆç®—'),
+        title: Text('早期返済計算'),
         backgroundColor: Colors.indigo.shade600,
         foregroundColor: Colors.white,
       ),
@@ -269,17 +269,17 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // åŸºæœ¬ãƒ­ãƒ¼ãƒ³æƒ…å ±å…¥åŠ›
+            // 基本ローン情報入力
             _buildStyledCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle('ãƒ­ãƒ¼ãƒ³æƒ…å ±å…¥åŠ›', Icons.edit_note),
+                  _buildSectionTitle('ローン情報入力', Icons.edit_note),
                   SizedBox(height: 20),
                   TextField(
                     controller: _loanAmountController,
                     decoration: InputDecoration(
-                      labelText: 'ãƒ­ãƒ¼ãƒ³é‡‘é¡(å††)',
+                      labelText: 'ローン金額(円)',
                       prefixIcon: Icon(Icons.monetization_on_rounded,
                           color: Colors.indigo.shade600),
                     ),
@@ -301,17 +301,17 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                   TextField(
                     controller: _interestRateController,
                     decoration: InputDecoration(
-                      labelText: 'é‡‘åˆ©(å¹´åˆ© %)',
+                      labelText: '金利(年利 %)',
                       prefixIcon: Icon(Icons.percent_rounded,
                           color: Colors.indigo.shade600),
                     ),
-                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: TextInputType.number,
                   ),
                   SizedBox(height: 20),
                   TextField(
                     controller: _loanTermYearsController,
                     decoration: InputDecoration(
-                      labelText: 'ãƒ­ãƒ¼ãƒ³æœŸé–“(å¹´)',
+                      labelText: 'ローン期間(年)',
                       prefixIcon: Icon(Icons.calendar_today_rounded,
                           color: Colors.indigo.shade600),
                     ),
@@ -321,7 +321,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                   TextField(
                     controller: _loanTermMonthsController,
                     decoration: InputDecoration(
-                      labelText: 'ãƒ­ãƒ¼ãƒ³æœŸé–“(æœˆ)',
+                      labelText: 'ローン期間(月)',
                       prefixIcon: Icon(Icons.calendar_month_rounded,
                           color: Colors.indigo.shade600),
                     ),
@@ -331,12 +331,12 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
               ),
             ),
 
-            // ç¹°ä¸Šè¿”æ¸ˆè¨­å®š
+            // 繰上返済設定
             _buildStyledCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle('ç¹°ä¸Šè¿”æ¸ˆã‚’è¿½åŠ ', Icons.add_circle_outline),
+                  _buildSectionTitle('繰上返済を追加', Icons.add_circle_outline),
                   SizedBox(height: 20),
                   ..._prepayments.asMap().entries.map((entry) {
                     int index = entry.key;
@@ -364,7 +364,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                               ),
                               SizedBox(width: 12),
                               Text(
-                                'ç¹°ä¸Šè¿”æ¸ˆ ${index + 1} å›žç›®',
+                                '繰上返済 ${index + 1} 回目',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -384,8 +384,8 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                               TextField(
                                 controller: prepay['month']!,
                                 decoration: InputDecoration(
-                                  labelText: 'è¿”æ¸ˆæœˆ',
-                                  hintText: 'ä¾‹: 12',
+                                  labelText: '返済月',
+                                  hintText: '例: 12',
                                   prefixIcon: Icon(Icons.calendar_month,
                                       color: Colors.indigo.shade600),
                                 ),
@@ -395,8 +395,8 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                               TextField(
                                 controller: prepay['amount']!,
                                 decoration: InputDecoration(
-                                  labelText: 'ç¹°ä¸Šé‡‘é¡(å††)',
-                                  hintText: 'ä¾‹: 1,000,000',
+                                  labelText: '繰上金額(円)',
+                                  hintText: '例: 1,000,000',
                                   prefixIcon: Icon(Icons.monetization_on,
                                       color: Colors.indigo.shade600),
                                 ),
@@ -424,7 +424,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                     child: ElevatedButton.icon(
                       onPressed: _addPrepaymentField,
                       icon: Icon(Icons.add),
-                      label: Text('ç¹°ä¸Šè¿”æ¸ˆã‚’è¿½åŠ '),
+                      label: Text('繰上返済を追加'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green.shade400,
                       ),
@@ -434,7 +434,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
               ),
             ),
 
-            // è¨ˆç®—ãƒœã‚¿ãƒ³
+            // 計算ボタン
             Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -442,7 +442,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                   ElevatedButton.icon(
                     onPressed: () => _calculateLoan(includePrepayment: false),
                     icon: Icon(Icons.calculate_rounded),
-                    label: Text('é€šå¸¸è¨ˆç®—'),
+                    label: Text('通常計算'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue.shade600,
                       padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -451,7 +451,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                   ElevatedButton.icon(
                     onPressed: () => _calculateLoan(includePrepayment: true),
                     icon: Icon(Icons.calculate_rounded),
-                    label: Text('åŠ¹æžœã‚’è¨ˆç®—'),
+                    label: Text('効果を計算'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.indigo.shade600,
                       padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -461,7 +461,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
               ),
             ),
 
-            // ç¹°ä¸Šè¿”æ¸ˆå¾Œã®çµæžœ
+            // 繰上返済後の結果
             if (_repaymentScheduleAfter.isNotEmpty) ...[
               _buildStyledCard(
                 key: _resultKey,
@@ -469,7 +469,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionTitle('ç¹°ä¸Šè¿”æ¸ˆå¾Œã®çµæžœ', Icons.trending_down_rounded),
+                    _buildSectionTitle('繰上返済後の結果', Icons.trending_down_rounded),
                     SizedBox(height: 16),
                     Container(
                       padding: EdgeInsets.all(16),
@@ -483,9 +483,9 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('æ”¯æ‰•å›žæ•°:',
+                              Text('支払回数:',
                                   style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text('${_totalPaymentsAfter} å›ž',
+                              Text('${_totalPaymentsAfter} 回',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.indigo.shade700)),
@@ -495,9 +495,9 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('ç·åˆ©æ¯:',
+                              Text('総利息:',
                                   style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text('${formatter.format(_totalInterestAfter.round())} å††',
+                              Text('${formatter.format(_totalInterestAfter.round())} 円',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.indigo.shade700)),
@@ -507,9 +507,9 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('æ”¯æ‰•ç·é¡:',
+                              Text('支払総額:',
                                   style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text('${formatter.format(_totalAmountAfter.round())} å††',
+                              Text('${formatter.format(_totalAmountAfter.round())} 円',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.indigo.shade700)),
@@ -522,9 +522,9 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                     Center(
                       child: ElevatedButton.icon(
                         onPressed: () => _navigateToSchedulePage(
-                            _repaymentScheduleAfter, 'ç¹°ä¸Šè¿”æ¸ˆå¾Œ è¿”æ¸ˆè¨ˆç”»è¡¨'),
+                            _repaymentScheduleAfter, '繰上返済後 返済計画表'),
                         icon: Icon(Icons.table_chart_rounded),
-                        label: Text('è¿”æ¸ˆè¨ˆç”»è¡¨ã‚’è¦‹ã‚‹'),
+                        label: Text('返済計画表を見る'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.indigo.shade600,
                         ),
@@ -534,7 +534,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                 ),
               ),
 
-              // åŠ¹æžœã‚µãƒžãƒªãƒ¼ï¼ˆé€šå¸¸è¨ˆç®—ã‚‚å®Ÿè¡Œã•ã‚Œã¦ã„ã‚‹å ´åˆã®ã¿è¡¨ç¤ºï¼‰
+              // 効果サマリー（通常計算も実行されている場合のみ表示）
               if (_totalPaymentsBefore > 0) ...[
                 _buildStyledCard(
                   color: Colors.green.shade50,
@@ -554,7 +554,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                           ),
                           SizedBox(width: 16),
                           Text(
-                            'ç¹°ä¸Šè¿”æ¸ˆåŠ¹æžœ',
+                            '繰上返済効果',
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
@@ -570,7 +570,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                           Column(
                             children: [
                               Text(
-                                'åˆ©æ¯è»½æ¸›é¡',
+                                '利息軽減額',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -578,7 +578,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                                 ),
                               ),
                               Text(
-                                '${formatter.format((_totalInterestBefore - _totalInterestAfter).round())} å††',
+                                '${formatter.format((_totalInterestBefore - _totalInterestAfter).round())} 円',
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -590,7 +590,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                           Column(
                             children: [
                               Text(
-                                'æœŸé–“çŸ­ç¸®',
+                                '期間短縮',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -598,7 +598,7 @@ class _EarlyPaymentScreenState extends State<EarlyPaymentScreen> {
                                 ),
                               ),
                               Text(
-                                '${_totalPaymentsBefore - _totalPaymentsAfter} ãƒ¶æœˆ',
+                                '${_totalPaymentsBefore - _totalPaymentsAfter} ヶ月',
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,

@@ -22,21 +22,21 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
   @override
   bool get wantKeepAlive => true;
 
-  // å…±é€šå…¥åŠ›ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰
+  // 共通入力フィールド
   final _monthlyPaymentController = TextEditingController();
   final _interestRateController = TextEditingController();
   final _loanTermYearsController = TextEditingController();
   final _loanTermMonthsController = TextEditingController(text: '0');
   final _bonusAmountController = TextEditingController();
   
-  String _repaymentMethod = 'å…ƒåˆ©å‡ç­‰';
-  bool _enableBonusPayment = false;  // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã®æœ‰åŠ¹/ç„¡åŠ¹
-  List<int> _bonusMonths = [6, 12];  // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆæœˆ
+  String _repaymentMethod = '元利均等';
+  bool _enableBonusPayment = false;  // ボーナス返済の有効/無効
+  List<int> _bonusMonths = [6, 12];  // ボーナス返済月
 
-  // è¨ˆç®—çµæžœ
-  double _calculatedAmount = 0;  // å€Ÿå…¥å¯èƒ½é¡
-  double _totalInterest = 0;     // ç·åˆ©æ¯
-  double _totalAmount = 0;       // ç·è¿”æ¸ˆé¡
+  // 計算結果
+  double _calculatedAmount = 0;  // 借入可能額
+  double _totalInterest = 0;     // 総利息
+  double _totalAmount = 0;       // 総返済額
   List<List<String>> _repaymentSchedule = [];
 
   final formatter = NumberFormat('#,###');
@@ -59,80 +59,80 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
     super.dispose();
   }
 
-  // ãƒœãƒ¼ãƒŠã‚¹æœˆåˆ¤å®šãƒ¡ã‚½ãƒƒãƒ‰
+  // ボーナス月判定メソッド
   bool _isBonusMonth(int monthNumber) {
     int monthInYear = monthNumber % 12;
     if (monthInYear == 0) monthInYear = 12;
     return _bonusMonths.contains(monthInYear);
   }
 
-  // å…¥åŠ›å€¤ã®æ¤œè¨¼
+  // 入力値の検証
   String? _validateInputs() {
-    // æ¯Žæœˆè¿”æ¸ˆé¡ã®æ¤œè¨¼
+    // 毎月返済額の検証
     String monthlyPaymentText = _monthlyPaymentController.text.replaceAll(',', '').trim();
     if (monthlyPaymentText.isEmpty || double.tryParse(monthlyPaymentText) == null) {
-      return 'ã€Œæ¯Žæœˆã®è¿”æ¸ˆé¡ã€ã«æ•°å€¤ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '「毎月の返済額」に数値を入力してください';
     }
     double monthlyPayment = double.parse(monthlyPaymentText);
     if (monthlyPayment <= 0) {
-      return 'ã€Œæ¯Žæœˆã®è¿”æ¸ˆé¡ã€ã«0ã‚ˆã‚Šå¤§ãã„æ•°å€¤ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '「毎月の返済額」に0より大きい数値を入力してください';
     }
 
-    // é‡‘åˆ©ã®æ¤œè¨¼
+    // 金利の検証
     String interestRateText = _interestRateController.text.trim();
     if (interestRateText.isEmpty || double.tryParse(interestRateText) == null) {
-      return 'ã€Œå¹´åˆ©ã€ã«æ•°å€¤ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '「年利」に数値を入力してください';
     }
     double interestRate = double.parse(interestRateText);
     if (interestRate < 0) {
-      return 'ã€Œå¹´åˆ©ã€ã«0ä»¥ä¸Šã®æ•°å€¤ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '「年利」に0以上の数値を入力してください';
     }
 
-    // è¿”æ¸ˆæœŸé–“ã®æ¤œè¨¼
+    // 返済期間の検証
     String yearsText = _loanTermYearsController.text.trim();
     if (yearsText.isEmpty || int.tryParse(yearsText) == null) {
-      return 'ã€Œå¹´æ•°ã€ã«æ•°å€¤ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '「年数」に数値を入力してください';
     }
     int years = int.parse(yearsText);
     if (years < 0) {
-      return 'ã€Œå¹´æ•°ã€ã«0ä»¥ä¸Šã®æ•°å€¤ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '「年数」に0以上の数値を入力してください';
     }
 
     String monthsText = _loanTermMonthsController.text.trim();
     if (monthsText.isEmpty || int.tryParse(monthsText) == null) {
-      return 'ã€Œãƒ¶æœˆã€ã«æ•°å€¤ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '「ヶ月」に数値を入力してください';
     }
     int months = int.parse(monthsText);
     if (months < 0 || months >= 12) {
-      return 'ã€Œãƒ¶æœˆã€ã«0ã€œ11ã®æ•°å€¤ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '「ヶ月」に0〜11の数値を入力してください';
     }
 
     int totalMonths = years * 12 + months;
     if (totalMonths <= 0) {
-      return 'è¿”æ¸ˆæœŸé–“ã‚’1ãƒ¶æœˆä»¥ä¸Šã«è¨­å®šã—ã¦ãã ã•ã„';
+      return '返済期間を1ヶ月以上に設定してください';
     }
 
-    // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã®æ¤œè¨¼
+    // ボーナス返済の検証
     if (_enableBonusPayment) {
       String bonusAmountText = _bonusAmountController.text.replaceAll(',', '').trim();
       if (bonusAmountText.isEmpty || double.tryParse(bonusAmountText) == null) {
-        return 'ã€Œãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆé¡ã€ã«æ•°å€¤ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+        return '「ボーナス返済額」に数値を入力してください';
       }
       double bonusAmount = double.parse(bonusAmountText);
       if (bonusAmount < 0) {
-        return 'ã€Œãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆé¡ã€ã«0ä»¥ä¸Šã®æ•°å€¤ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+        return '「ボーナス返済額」に0以上の数値を入力してください';
       }
     }
 
-    return null; // ã‚¨ãƒ©ãƒ¼ãªã—
+    return null; // エラーなし
   }
 
-  // é€†ç®—è¨ˆç®—ãƒ¡ã‚¤ãƒ³ï¼ˆå€Ÿå…¥å¯èƒ½é¡ã®ã¿ï¼‰
+  // 逆算計算メイン（借入可能額のみ）
   void _calculateLoanAmount() async {
-    // ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã‚’é–‰ã˜ã‚‹
+    // キーボードを閉じる
     FocusScope.of(context).unfocus();
 
-    // ãƒãƒªãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³ãƒã‚§ãƒƒã‚¯
+    // バリデーションチェック
     String? validationError = _validateInputs();
     if (validationError != null) {
       _showErrorDialog(validationError);
@@ -148,7 +148,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
 
     _calculateMaxLoanAmount(monthlyPayment, monthlyInterest, bonusAmount);
 
-    // è¨ˆç®—çµæžœãŒè¡¨ç¤ºã•ã‚Œã‚‹éƒ¨åˆ†ã¾ã§è‡ªå‹•ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«
+    // 計算結果が表示される部分まで自動スクロール
     if (_resultKey.currentContext != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final context = _resultKey.currentContext;
@@ -163,7 +163,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
     }
   }
 
-  // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã‚’è€ƒæ…®ã—ãŸå€Ÿå…¥å¯èƒ½é¡è¨ˆç®—
+  // ボーナス返済を考慮した借入可能額計算
   void _calculateMaxLoanAmount(double monthlyPayment, double monthlyInterest, double bonusAmount) {
     int years = int.parse(_loanTermYearsController.text);
     int months = int.parse(_loanTermMonthsController.text);
@@ -171,11 +171,11 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
 
     double maxLoanAmount;
 
-    if (_repaymentMethod == 'å…ƒåˆ©å‡ç­‰') {
-      // å…ƒåˆ©å‡ç­‰æ–¹å¼ã§ã®å€Ÿå…¥å¯èƒ½é¡ï¼ˆãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆè€ƒæ…®ï¼‰
+    if (_repaymentMethod == '元利均等') {
+      // 元利均等方式での借入可能額（ボーナス返済考慮）
       if (monthlyInterest > 0) {
         if (bonusAmount > 0) {
-          // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã®ç¾åœ¨ä¾¡å€¤ã‚’è¨ˆç®—
+          // ボーナス返済の現在価値を計算
           double bonusPresentValue = 0;
           for (int i = 1; i <= totalMonths; i++) {
             if (_isBonusMonth(i)) {
@@ -183,21 +183,21 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
             }
           }
           
-          // æœˆã€…è¿”æ¸ˆã®ç¾åœ¨ä¾¡å€¤ã‚’è¨ˆç®—
+          // 月々返済の現在価値を計算
           double monthlyPresentValue = monthlyPayment * 
               (1 - (1 / pow(1 + monthlyInterest, totalMonths))) / 
               monthlyInterest;
           
-          // ç·å€Ÿå…¥å¯èƒ½é¡
+          // 総借入可能額
           maxLoanAmount = monthlyPresentValue + bonusPresentValue;
         } else {
-          // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆãªã—ã®å ´åˆ
+          // ボーナス返済なしの場合
           maxLoanAmount = monthlyPayment * 
               (1 - (1 / pow(1 + monthlyInterest, totalMonths))) / 
               monthlyInterest;
         }
       } else {
-        // é‡‘åˆ©0%ã®å ´åˆ
+        // 金利0%の場合
         double bonusTotalPayment = 0;
         for (int i = 1; i <= totalMonths; i++) {
           if (_isBonusMonth(i)) {
@@ -207,9 +207,9 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
         maxLoanAmount = (monthlyPayment * totalMonths) + bonusTotalPayment;
       }
     } else {
-      // å…ƒé‡‘å‡ç­‰æ–¹å¼ã§ã®å€Ÿå…¥å¯èƒ½é¡ï¼ˆãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆè€ƒæ…®ï¼‰
+      // 元金均等方式での借入可能額（ボーナス返済考慮）
       if (monthlyInterest > 0) {
-        // ç°¡æ˜“è¨ˆç®—ï¼šåˆå›žè¿”æ¸ˆé¡ã¨ã—ã¦è¨ˆç®—ã—ã€ãƒœãƒ¼ãƒŠã‚¹åˆ†ã‚’åŠ ç®—
+        // 簡易計算：初回返済額として計算し、ボーナス分を加算
         double baseAmount = monthlyPayment / ((1.0 / totalMonths) + monthlyInterest);
         double bonusTotalPayment = 0;
         for (int i = 1; i <= totalMonths; i++) {
@@ -217,8 +217,8 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
             bonusTotalPayment += bonusAmount;
           }
         }
-        // ãƒœãƒ¼ãƒŠã‚¹åˆ†ã®ç¾åœ¨ä¾¡å€¤ã‚’è¿‘ä¼¼è¨ˆç®—ã§åŠ ç®—
-        maxLoanAmount = baseAmount + (bonusTotalPayment * 0.7); // ç°¡æ˜“ç¾åœ¨ä¾¡å€¤
+        // ボーナス分の現在価値を近似計算で加算
+        maxLoanAmount = baseAmount + (bonusTotalPayment * 0.7); // 簡易現在価値
       } else {
         double bonusTotalPayment = 0;
         for (int i = 1; i <= totalMonths; i++) {
@@ -230,7 +230,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
       }
     }
 
-    // è¿”æ¸ˆã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ«ã®ç”Ÿæˆ
+    // 返済スケジュールの生成
     _generateSchedule(maxLoanAmount, monthlyInterest, totalMonths, bonusAmount);
 
     setState(() {
@@ -238,14 +238,14 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
     });
   }
 
-  // è¿”æ¸ˆã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ«ç”Ÿæˆï¼ˆãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆè€ƒæ…®ï¼‰
+  // 返済スケジュール生成（ボーナス返済考慮）
   void _generateSchedule(double loanAmount, double monthlyInterest, int totalMonths, double bonusAmount) {
     List<List<String>> schedule = [];
     double balance = loanAmount;
     double totalInterestCalc = 0;
 
-    if (_repaymentMethod == 'å…ƒåˆ©å‡ç­‰') {
-      // å…ƒåˆ©å‡ç­‰ã§ã®å®Ÿéš›ã®æœˆé¡è¨ˆç®—
+    if (_repaymentMethod == '元利均等') {
+      // 元利均等での実際の月額計算
       double actualMonthlyPayment;
       if (monthlyInterest > 0) {
         actualMonthlyPayment = loanAmount * monthlyInterest / 
@@ -260,7 +260,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
         double currentPayment = actualMonthlyPayment;
         bool isBonusMonth = _isBonusMonth(i);
         
-        // ãƒœãƒ¼ãƒŠã‚¹æœˆã®å ´åˆ
+        // ボーナス月の場合
         if (isBonusMonth && bonusAmount > 0) {
           principal += bonusAmount;
           currentPayment += bonusAmount;
@@ -281,11 +281,11 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
           formatter.format(interest.round()),
           formatter.format(currentPayment.round()),
           formatter.format(balance.round()),
-          isBonusMonth ? 'ãƒœãƒ¼ãƒŠã‚¹' : '',
+          isBonusMonth ? 'ボーナス' : '',
         ]);
       }
     } else {
-      // å…ƒé‡‘å‡ç­‰
+      // 元金均等
       double principalPayment = loanAmount / totalMonths;
 
       for (int i = 1; i <= totalMonths && balance > 0; i++) {
@@ -294,7 +294,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
         double currentPayment = principalPayment + interest;
         bool isBonusMonth = _isBonusMonth(i);
         
-        // ãƒœãƒ¼ãƒŠã‚¹æœˆã®å ´åˆ
+        // ボーナス月の場合
         if (isBonusMonth && bonusAmount > 0) {
           principal += bonusAmount;
           currentPayment += bonusAmount;
@@ -310,7 +310,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
           formatter.format(interest.round()),
           formatter.format(currentPayment.round()),
           formatter.format(balance.round()),
-          isBonusMonth ? 'ãƒœãƒ¼ãƒŠã‚¹' : '',
+          isBonusMonth ? 'ボーナス' : '',
         ]);
       }
     }
@@ -322,13 +322,13 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
     });
   }
 
-  // ã‚¨ãƒ©ãƒ¼ãƒ€ã‚¤ã‚¢ãƒ­ã‚°è¡¨ç¤º
+  // エラーダイアログ表示
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('å…¥åŠ›ã‚¨ãƒ©ãƒ¼'),
+          title: Text('入力エラー'),
           content: Text(message),
           actions: <Widget>[
             TextButton(
@@ -347,17 +347,14 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
   Widget build(BuildContext context) {
     super.build(context);
     
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      behavior: HitTestBehavior.opaque,
-      child: Scaffold(
-        body: SingleChildScrollView(
-          controller: _scrollController,
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-            // ãƒšãƒ¼ã‚¸ã‚¿ã‚¤ãƒˆãƒ«
+    return Scaffold(
+      body: SingleChildScrollView(
+        controller: _scrollController,
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ページタイトル
             Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
@@ -381,7 +378,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
                   Icon(Icons.calculate, color: Colors.white, size: 32),
                   SizedBox(height: 8),
                   Text(
-                    'å€Ÿå…¥è¨ºæ–­',
+                    '借入診断',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -390,7 +387,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'æœˆã€…ã®è¿”æ¸ˆé¡ã‹ã‚‰å€Ÿå…¥å¯èƒ½é¡ã‚’è¨ˆç®—',
+                    '月々の返済額から借入可能額を計算',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.white.withOpacity(0.9),
@@ -402,7 +399,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
 
             SizedBox(height: 24),
 
-            // è¿”æ¸ˆæ–¹å¼é¸æŠž
+            // 返済方式選択
             Container(
               width: double.infinity,
               padding: EdgeInsets.all(16),
@@ -415,7 +412,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'è¿”æ¸ˆæ–¹å¼',
+                    '返済方式',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -427,9 +424,9 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
                     children: [
                       Expanded(
                         child: RadioListTile<String>(
-                          title: Text('å…ƒåˆ©å‡ç­‰'),
-                          subtitle: Text('æ¯Žæœˆä¸€å®šé¡', style: TextStyle(fontSize: 12)),
-                          value: 'å…ƒåˆ©å‡ç­‰',
+                          title: Text('元利均等'),
+                          subtitle: Text('毎月一定額', style: TextStyle(fontSize: 12)),
+                          value: '元利均等',
                           groupValue: _repaymentMethod,
                           onChanged: (value) {
                             setState(() {
@@ -443,9 +440,9 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
                       ),
                       Expanded(
                         child: RadioListTile<String>(
-                          title: Text('å…ƒé‡‘å‡ç­‰'),
-                          subtitle: Text('å…ƒé‡‘ä¸€å®šé¡', style: TextStyle(fontSize: 12)),
-                          value: 'å…ƒé‡‘å‡ç­‰',
+                          title: Text('元金均等'),
+                          subtitle: Text('元金一定額', style: TextStyle(fontSize: 12)),
+                          value: '元金均等',
                           groupValue: _repaymentMethod,
                           onChanged: (value) {
                             setState(() {
@@ -465,12 +462,12 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
 
             SizedBox(height: 20),
 
-            // å…¥åŠ›ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰
+            // 入力フィールド
             _buildInputSection(),
 
             SizedBox(height: 24),
 
-            // è¨ˆç®—ãƒœã‚¿ãƒ³
+            // 計算ボタン
             Container(
               width: double.infinity,
               height: 56,
@@ -478,7 +475,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
                 onPressed: _calculateLoanAmount,
                 icon: Icon(Icons.calculate, size: 24),
                 label: Text(
-                  _enableBonusPayment ? 'å€Ÿå…¥å¯èƒ½é¡ã‚’è¨ˆç®—' : 'å€Ÿå…¥å¯èƒ½é¡ã‚’è¨ˆç®—',
+                  _enableBonusPayment ? '借入可能額を計算' : '借入可能額を計算',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -494,16 +491,15 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
 
             SizedBox(height: 32),
 
-            // è¨ˆç®—çµæžœè¡¨ç¤º
+            // 計算結果表示
             if (_calculatedAmount > 0) _buildResultSection(),
           ],
         ),
       ),
-      ), // GestureDetector
     );
   }
 
-  // å…¥åŠ›ã‚»ã‚¯ã‚·ãƒ§ãƒ³æ§‹ç¯‰
+  // 入力セクション構築
   Widget _buildInputSection() {
     return Container(
       padding: EdgeInsets.all(20),
@@ -522,7 +518,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'å€Ÿå…¥æ¡ä»¶ã‚’å…¥åŠ›',
+            '借入条件を入力',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -531,46 +527,46 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
           ),
           SizedBox(height: 20),
 
-          // æ¯Žæœˆã®è¿”æ¸ˆé¡
+          // 毎月の返済額
           _buildInputField(
-            label: 'æ¯Žæœˆã®è¿”æ¸ˆé¡',
+            label: '毎月の返済額',
             controller: _monthlyPaymentController,
-            suffix: 'å††',
-            hint: 'ä¾‹: 100,000',
+            suffix: '円',
+            hint: '例: 100000',
             icon: Icons.payments,
           ),
 
           SizedBox(height: 16),
 
-          // å¹´åˆ©
+          // 年利
           _buildInputField(
-            label: 'å¹´åˆ©',
+            label: '年利',
             controller: _interestRateController,
             suffix: '%',
-            hint: 'ä¾‹: 2.5',
+            hint: '例: 2.5',
             icon: Icons.percent,
           ),
 
           SizedBox(height: 16),
 
-          // è¿”æ¸ˆæœŸé–“
+          // 返済期間
           Row(
             children: [
               Expanded(
                 child: _buildInputField(
-                  label: 'è¿”æ¸ˆæœŸé–“ï¼ˆå¹´ï¼‰',
+                  label: '返済期間（年）',
                   controller: _loanTermYearsController,
-                  suffix: 'å¹´',
-                  hint: 'ä¾‹: 35',
+                  suffix: '年',
+                  hint: '例: 35',
                   icon: Icons.schedule,
                 ),
               ),
               SizedBox(width: 16),
               Expanded(
                 child: _buildInputField(
-                  label: 'ï¼ˆæœˆï¼‰',
+                  label: '（月）',
                   controller: _loanTermMonthsController,
-                  suffix: 'ãƒ¶æœˆ',
+                  suffix: 'ヶ月',
                   hint: '0-11',
                   icon: Icons.calendar_month,
                 ),
@@ -580,14 +576,14 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
 
           SizedBox(height: 20),
 
-          // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆè¨­å®š
+          // ボーナス返済設定
           _buildBonusPaymentSection(),
         ],
       ),
     );
   }
 
-  // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆè¨­å®šã‚»ã‚¯ã‚·ãƒ§ãƒ³
+  // ボーナス返済設定セクション
   Widget _buildBonusPaymentSection() {
     return Container(
       padding: EdgeInsets.all(16),
@@ -604,7 +600,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
               Icon(Icons.card_giftcard, color: Colors.blue.shade600),
               SizedBox(width: 8),
               Text(
-                'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆ',
+                'ボーナス返済',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -629,20 +625,20 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
           if (_enableBonusPayment) ...[
             SizedBox(height: 16),
             
-            // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆé¡
+            // ボーナス返済額
             _buildInputField(
-              label: 'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆé¡ï¼ˆ1å›žã‚ãŸã‚Šï¼‰',
+              label: 'ボーナス返済額（1回あたり）',
               controller: _bonusAmountController,
-              suffix: 'å††',
-              hint: 'ä¾‹: 200,000',
+              suffix: '円',
+              hint: '例: 200000',
               icon: Icons.monetization_on,
             ),
             
             SizedBox(height: 16),
             
-            // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆæœˆé¸æŠž
+            // ボーナス返済月選択
             Text(
-              'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆæœˆ',
+              'ボーナス返済月',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -654,7 +650,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
               spacing: 8,
               children: [
                 FilterChip(
-                  label: Text('6æœˆ'),
+                  label: Text('6月'),
                   selected: _bonusMonths.contains(6),
                   onSelected: (selected) {
                     setState(() {
@@ -670,7 +666,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
                   selectedColor: Colors.blue.shade200,
                 ),
                 FilterChip(
-                  label: Text('12æœˆ'),
+                  label: Text('12月'),
                   selected: _bonusMonths.contains(12),
                   onSelected: (selected) {
                     setState(() {
@@ -690,7 +686,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
             
             SizedBox(height: 8),
             Text(
-              'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã«ã‚ˆã‚Šã€ã‚ˆã‚Šå¤šãã®å€Ÿå…¥ãŒå¯èƒ½ã«ãªã‚Šã¾ã™',
+              'ボーナス返済により、より多くの借入が可能になります',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.blue.shade600,
@@ -703,7 +699,6 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
     );
   }
 
-  // å…¥åŠ›ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰æ§‹ç¯‰ãƒ˜ãƒ«ãƒ‘ãƒ¼
   // 入力フィールド構築ヘルパー
   Widget _buildInputField({
     required String label,
@@ -712,9 +707,6 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
     required String hint,
     required IconData icon,
   }) {
-    // 金利フィールドかどうかを判定
-    bool isInterestRate = label.contains('年利') || label.contains('金利');
-    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -729,9 +721,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
         SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          keyboardType: isInterestRate 
-              ? TextInputType.numberWithOptions(decimal: true)  // 金利は小数点付き
-              : TextInputType.number,  // その他は整数のみ
+          keyboardType: TextInputType.number,
           decoration: InputDecoration(
             hintText: hint,
             suffixText: suffix,
@@ -747,36 +737,18 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
             filled: true,
             fillColor: Colors.grey.shade50,
           ),
-          onChanged: isInterestRate 
-              ? null  // 金利は小数点があるのでカンマ区切りしない
-              : (value) {
-                  // 金額フィールドにはカンマ区切りを追加
-                  if (suffix == '円') {
-                    String cleaned = value.replaceAll(',', '');
-                    double? parsed = double.tryParse(cleaned);
-                    if (parsed != null) {
-                      controller.value = TextEditingValue(
-                        text: formatter.format(parsed.round()),
-                        selection: TextSelection.collapsed(
-                          offset: formatter.format(parsed.round()).length,
-                        ),
-                      );
-                    }
-                  }
-                },
         ),
       ],
     );
   }
 
-
-  // çµæžœã‚»ã‚¯ã‚·ãƒ§ãƒ³æ§‹ç¯‰
+  // 結果セクション構築
   Widget _buildResultSection() {
     return Column(
       key: _resultKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // è¨ˆç®—çµæžœã‚«ãƒ¼ãƒ‰
+        // 計算結果カード
         Container(
           width: double.infinity,
           padding: EdgeInsets.all(24),
@@ -800,7 +772,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
               Icon(Icons.account_balance, color: Colors.white, size: 48),
               SizedBox(height: 16),
               Text(
-                _enableBonusPayment ? 'å€Ÿå…¥å¯èƒ½é¡ï¼ˆãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆè¾¼ã¿ï¼‰' : 'å€Ÿå…¥å¯èƒ½é¡',
+                _enableBonusPayment ? '借入可能額（ボーナス返済込み）' : '借入可能額',
                 style: TextStyle(
                   fontSize: 18,
                   color: Colors.white.withOpacity(0.9),
@@ -808,7 +780,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
               ),
               SizedBox(height: 8),
               Text(
-                '${formatter.format(_calculatedAmount.round())} å††',
+                '${formatter.format(_calculatedAmount.round())} 円',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -821,7 +793,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
 
         SizedBox(height: 20),
 
-        // è¿”æ¸ˆç·é¡æƒ…å ±
+        // 返済総額情報
         Container(
           width: double.infinity,
           padding: EdgeInsets.all(20),
@@ -839,12 +811,12 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
           ),
           child: Column(
             children: [
-              _buildSummaryRow('ç·åˆ©æ¯é¡', '${formatter.format(_totalInterest.round())} å††', Colors.orange),
+              _buildSummaryRow('総利息額', '${formatter.format(_totalInterest.round())} 円', Colors.orange),
               SizedBox(height: 12),
-              _buildSummaryRow('ç·è¿”æ¸ˆé¡', '${formatter.format(_totalAmount.round())} å††', Colors.red),
+              _buildSummaryRow('総返済額', '${formatter.format(_totalAmount.round())} 円', Colors.red),
               if (_enableBonusPayment) ...[
                 SizedBox(height: 12),
-                _buildSummaryRow('å¹´é–“ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆ', '${formatter.format((double.parse(_bonusAmountController.text.replaceAll(',', '')) * _bonusMonths.length).round())} å††', Colors.blue),
+                _buildSummaryRow('年間ボーナス返済', '${formatter.format((double.parse(_bonusAmountController.text.replaceAll(',', '')) * _bonusMonths.length).round())} 円', Colors.blue),
               ],
             ],
           ),
@@ -852,7 +824,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
 
         SizedBox(height: 24),
 
-        // è¿”æ¸ˆã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ«è¡¨ç¤ºãƒœã‚¿ãƒ³
+        // 返済スケジュール表示ボタン
         if (widget.appState.isPremium && _repaymentSchedule.isNotEmpty)
           Container(
             width: double.infinity,
@@ -863,14 +835,14 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
                   MaterialPageRoute(
                     builder: (context) => RepaymentSchedulePage(
                       schedule: _repaymentSchedule,
-                      title: 'å€Ÿå…¥å¯èƒ½é¡ ${formatter.format(_calculatedAmount.round())}å††ã®è¿”æ¸ˆã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ«',
+                      title: '借入可能額 ${formatter.format(_calculatedAmount.round())}円の返済スケジュール',
                       isPremium: widget.appState.isPremium,
                     ),
                   ),
                 );
               },
               icon: Icon(Icons.table_chart),
-              label: Text(_enableBonusPayment ? 'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ«ã‚’è¡¨ç¤º' : 'è¿”æ¸ˆã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ«ã‚’è¡¨ç¤º'),
+              label: Text(_enableBonusPayment ? 'ボーナス返済スケジュールを表示' : '返済スケジュールを表示'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.indigo.shade600,
                 foregroundColor: Colors.white,
@@ -885,7 +857,7 @@ class _ReverseCalculationScreenState extends State<ReverseCalculationScreen> wit
     );
   }
 
-  // ã‚µãƒžãƒªãƒ¼è¡Œã®æ§‹ç¯‰
+  // サマリー行の構築
   Widget _buildSummaryRow(String label, String value, Color color) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
