@@ -22,12 +22,12 @@ class LoanCalculatorScreen extends StatefulWidget {
 
 class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with AutomaticKeepAliveClientMixin {
   @override
-  bool get wantKeepAlive => true;  // ç”»é¢ã®çŠ¶æ…‹ã‚’ä¿æŒã™ã‚‹
+  bool get wantKeepAlive => true;  // 状態の保持を維持する
   final _loanAmountController = TextEditingController();
   final _interestRateController = TextEditingController();
   final _loanTermYearsController = TextEditingController();
   final _loanTermMonthsController = TextEditingController(text: '0');
-  String _repaymentMethod = 'å…ƒåˆ©å‡ç­‰';
+  String _repaymentMethod = '元利均等';
 
   double _monthlyPayment = 0;
   int _totalPayments = 0;
@@ -53,10 +53,10 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
   }
 
   void _calculate() {
-    // ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã‚’é–‰ã˜ã‚‹
+    // キーボードを閉じる
     FocusScope.of(context).unfocus();
 
-    // ãƒãƒªãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³ãƒã‚§ãƒƒã‚¯
+    // バリデーションチェック
     String? validationError = _validateInputs();
     if (validationError != null) {
       _showErrorDialog(validationError);
@@ -71,7 +71,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
     int totalMonths = years * 12 + months;
     double monthlyInterest = annualInterest / 100 / 12;
     
-    if (_repaymentMethod == 'å…ƒåˆ©å‡ç­‰') {
+    if (_repaymentMethod == '元利均等') {
       double monthlyPayment = loanAmount * monthlyInterest / 
         (1 - (1 / pow(1 + monthlyInterest, totalMonths)));
       
@@ -81,12 +81,12 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
         _totalInterest = (monthlyPayment * totalMonths) - loanAmount;
         _totalAmount = loanAmount + _totalInterest;
         
-        // è¿”æ¸ˆã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ«è¨ˆç®—
+        // 返済スケジュール計算
         _repaymentSchedule = _calculateRepaymentSchedule(
           loanAmount, monthlyInterest, totalMonths, monthlyPayment);
       });
       
-      // è¨ˆç®—çµæžœãŒè¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹éƒ¨åˆ†ã¾ã§è‡ªå‹•ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«
+      // 計算結果が表示される部分まで自動スクロール
       if (_resultKey.currentContext != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           final context = _resultKey.currentContext;
@@ -112,7 +112,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
       double principal = monthlyPayment - interest;
       balance -= principal;
       
-      // æœ€å¾Œã®å›žã§æ®‹é«˜ãŒ0ã‚’ä¸‹å›žã‚‰ãªã„ã‚ˆã†èª¿æ•´
+      // 最後の回で残高が0を下回らないよう調整
       if (balance < 0) {
         principal += balance;
         balance = 0;
@@ -124,7 +124,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
         formatter.format(principal.round()),
         formatter.format(interest.round()),
         formatter.format(balance.round()),
-        'é€šå¸¸'
+        '通常'
       ]);
       
       if (balance <= 0) break;
@@ -135,29 +135,29 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
 
   String? _validateInputs() {
     if (_loanAmountController.text.trim().isEmpty) {
-      return 'å€Ÿå…¥é‡‘é¡ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '借入金額を入力してください';
     }
     if (double.tryParse(_loanAmountController.text.replaceAll(',', '')) == null) {
-      return 'å€Ÿå…¥é‡‘é¡ã«ã¯æ•°å­—ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '借入金額には数値を入力してください';
     }
     if (_interestRateController.text.trim().isEmpty) {
-      return 'é‡‘åˆ©ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '金利を入力してください';
     }
     if (double.tryParse(_interestRateController.text) == null) {
-      return 'é‡‘åˆ©ã«ã¯æ•°å­—ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '金利には数値を入力してください';
     }
     if (_loanTermYearsController.text.trim().isEmpty) {
-      return 'ãƒ­ãƒ¼ãƒ³æœŸé–“ï¼ˆå¹´ï¼‰ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return 'ローン期間（年）を入力してください';
     }
     if (int.tryParse(_loanTermYearsController.text) == null) {
-      return 'ãƒ­ãƒ¼ãƒ³æœŸé–“ï¼ˆå¹´ï¼‰ã«ã¯æ•°å­—ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return 'ローン期間（年）には数値を入力してください';
     }
     
     int years = int.parse(_loanTermYearsController.text);
     int months = int.tryParse(_loanTermMonthsController.text) ?? 0;
     
     if (years <= 0 && months <= 0) {
-      return 'ãƒ­ãƒ¼ãƒ³æœŸé–“ã¯1ãƒ¶æœˆä»¥ä¸Šã§ã‚ã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™';
+      return 'ローン期間は1ヶ月以上である必要があります';
     }
     
     return null;
@@ -191,7 +191,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
             children: [
               Icon(Icons.save, color: Colors.white),
               SizedBox(width: 8),
-              Text('ãƒ­ãƒ¼ãƒ³ãƒ‡ãƒ¼ã‚¿ã‚’ä¿å­˜ã—ã¾ã—ãŸ'),
+              Text('ローンデータを保存しました'),
             ],
           ),
           backgroundColor: Colors.green.shade500,
@@ -217,20 +217,20 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
           children: [
             Icon(Icons.save, color: Colors.green.shade600, size: 28),
             SizedBox(width: 8),
-            Text('è¨ˆç®—çµæžœã‚’ä¿å­˜'),
+            Text('計算結果を保存'),
           ],
         ),
         content: TextField(
           controller: titleController,
           decoration: InputDecoration(
-            labelText: 'ã‚¿ã‚¤ãƒˆãƒ«',
+            labelText: 'タイトル',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('ã‚­ãƒ£ãƒ³ã‚»ãƒ«'),
+            child: Text('キャンセル'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -239,7 +239,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                 _saveData(titleController.text.trim());
               }
             },
-            child: Text('ä¿å­˜'),
+            child: Text('保存'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green.shade600,
             ),
@@ -265,7 +265,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
               child: Icon(Icons.star, color: Colors.white, size: 24),
             ),
             SizedBox(width: 12),
-            Text('ãƒ—ãƒ¬ãƒŸã‚¢ãƒ ãƒ—ãƒ©ãƒ³'),
+            Text('プレミアムプラン'),
           ],
         ),
         content: Column(
@@ -273,7 +273,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'ãƒ‡ãƒ¼ã‚¿ä¿å­˜æ©Ÿèƒ½ã¯ãƒ—ãƒ¬ãƒŸã‚¢ãƒ ãƒ—ãƒ©ãƒ³é™å®šã§ã™',
+              'データ保存機能はプレミアムプラン限定です',
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 16),
@@ -292,7 +292,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                       Icon(Icons.star, color: Colors.amber.shade600, size: 20),
                       SizedBox(width: 8),
                       Text(
-                        'ãƒ—ãƒ¬ãƒŸã‚¢ãƒ æ©Ÿèƒ½',
+                        'プレミアム機能',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.amber.shade800,
@@ -301,7 +301,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                     ],
                   ),
                   SizedBox(height: 12),
-                  Text('â€¢ ãƒ­ãƒ¼ãƒ³è¨ˆç®—çµæžœã®ä¿å­˜\nâ€¢ ãƒ‡ãƒ¼ã‚¿æ¯”è¼ƒæ©Ÿèƒ½\nâ€¢ ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆè¨ˆç®—\nâ€¢ æ—©æœŸè¿”æ¸ˆè¨ˆç®—\nâ€¢ åºƒå‘Šéžè¡¨ç¤º'),
+                  Text('• ローン計算結果の保存\n• データ比較機能\n• ボーナス返済計算\n• 早期返済計算\n• 広告非表示'),
                 ],
               ),
             ),
@@ -320,7 +320,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'ä¸€åº¦ã®è³¼å…¥ã§æ°¸ç¶šåˆ©ç”¨å¯èƒ½',
+                      '一度の購入で永続利用可能',
                       style: TextStyle(
                         color: Colors.blue.shade700,
                         fontWeight: FontWeight.w500,
@@ -335,7 +335,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('ã‚­ãƒ£ãƒ³ã‚»ãƒ«'),
+            child: Text('キャンセル'),
           ),
           ElevatedButton.icon(
             onPressed: () async {
@@ -350,7 +350,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                         children: [
                           Icon(Icons.star, color: Colors.white),
                           SizedBox(width: 8),
-                          Text('ãƒ—ãƒ¬ãƒŸã‚¢ãƒ ãƒ—ãƒ©ãƒ³ã¸ã‚¢ãƒƒãƒ—ã‚°ãƒ¬ãƒ¼ãƒ‰ã—ã¾ã—ãŸï¼'),
+                          Text('プレミアムプランへアップグレードしました！'),
                         ],
                       ),
                       backgroundColor: Colors.amber,
@@ -362,7 +362,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('è³¼å…¥ã«å¤±æ•—ã—ã¾ã—ãŸã€‚ã‚‚ã†ä¸€åº¦ãŠè©¦ã—ãã ã•ã„ã€‚'),
+                    content: Text('購入に失敗しました。もう一度お試しください。'),
                     backgroundColor: Colors.red,
                     behavior: SnackBarBehavior.floating,
                   ),
@@ -370,7 +370,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
               }
             },
             icon: Icon(Icons.shopping_cart),
-            label: Text('Â¥230ã§è³¼å…¥'),
+            label: Text('¥230で購入'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.amber,
               foregroundColor: Colors.white,
@@ -381,7 +381,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
     );
   }
 
-  // ã‚¨ãƒ©ãƒ¼ãƒ€ã‚¤ã‚¢ãƒ­ã‚°è¡¨ç¤º
+  // エラーダイアログ表示
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
@@ -391,7 +391,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
           children: [
             Icon(Icons.error_outline, color: Colors.red.shade600, size: 28),
             SizedBox(width: 8),
-            Text('å…¥åŠ›ã‚¨ãƒ©ãƒ¼'),
+            Text('入力エラー'),
           ],
         ),
         content: Text(message, style: TextStyle(fontSize: 16)),
@@ -408,7 +408,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
     );
   }
 
-  // è¿”æ¸ˆã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ«ç”»é¢ã¸ã®é·ç§»
+  // 返済スケジュール画面への遷移
   void _navigateToSchedulePage(List<List<String>> schedule, String title) {
     Navigator.push(
       context,
@@ -422,7 +422,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
     );
   }
 
-  // ã‚¹ã‚¿ã‚¤ãƒ«ä»˜ãã‚«ãƒ¼ãƒ‰ä½œæˆ
+  // スタイル付きカード作成
   Widget _buildStyledCard({
     required Widget child,
     Color? color,
@@ -447,7 +447,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
     );
   }
 
-  // ã‚»ã‚¯ã‚·ãƒ§ãƒ³ã‚¿ã‚¤ãƒˆãƒ«ä½œæˆ
+  // セクションタイトル作成
   Widget _buildSectionTitle(String title, IconData icon) {
     return Row(
       children: [
@@ -467,10 +467,10 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // AutomaticKeepAliveClientMixinç”¨
+    super.build(context); // AutomaticKeepAliveClientMixin用
     return GestureDetector(
       onTap: () {
-        // ä½™ç™½ã‚’ã‚¿ãƒƒãƒ—ã—ãŸæ™‚ã«ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã‚’é–‰ã˜ã‚‹
+        // 何処をタップした時にキーボードを閉じる
         FocusScope.of(context).unfocus();
       },
       child: Container(
@@ -479,13 +479,13 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
           controller: _scrollController,
           child: Column(
             children: [
-              // åºƒå‘Šè¡¨ç¤ºã‚¨ãƒªã‚¢
+              // 広告表示エリア
               if (!widget.appState.isPremium) widget.adService.getBannerAdWidget(),
 
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ  
+                  // 入力フォーム
                   _buildStyledCard(
                     color: Colors.white,
                     child: Column(
@@ -494,10 +494,10 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                         TextField(
                           controller: _loanAmountController,
                           decoration: InputDecoration(
-                            labelText: 'å€Ÿå…¥é‡‘é¡ï¼ˆå…ƒæœ¬ï¼‰',
+                            labelText: '借入金額（元本）',
                             prefixIcon: Icon(Icons.monetization_on_rounded,
                                 color: Colors.indigo.shade600),
-                            suffixText: 'å††',
+                            suffixText: '円',
                           ),
                           keyboardType: TextInputType.number,
                           onChanged: (value) {
@@ -517,7 +517,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                         TextField(
                           controller: _interestRateController,
                           decoration: InputDecoration(
-                            labelText: 'é‡‘åˆ©ï¼ˆå¹´åˆ© %ï¼‰',
+                            labelText: '金利（年利 %）',
                             prefixIcon: Icon(Icons.percent_rounded,
                                 color: Colors.indigo.shade600),
                           ),
@@ -527,7 +527,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                         TextField(
                           controller: _loanTermYearsController,
                           decoration: InputDecoration(
-                            labelText: 'ãƒ­ãƒ¼ãƒ³æœŸé–“ï¼ˆå¹´ï¼‰',
+                            labelText: 'ローン期間（年）',
                             prefixIcon: Icon(Icons.calendar_today_rounded,
                                 color: Colors.indigo.shade600),
                           ),
@@ -537,7 +537,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                         TextField(
                           controller: _loanTermMonthsController,
                           decoration: InputDecoration(
-                            labelText: 'ãƒ­ãƒ¼ãƒ³æœŸé–“ï¼ˆæœˆï¼‰',
+                            labelText: 'ローン期間（月）',
                             prefixIcon: Icon(Icons.calendar_month_rounded,
                                 color: Colors.indigo.shade600),
                           ),
@@ -554,7 +554,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                             value: _repaymentMethod,
                             isExpanded: true,
                             underline: SizedBox(),
-                            items: ['å…ƒåˆ©å‡ç­‰'].map((String value) {
+                            items: ['元利均等'].map((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
                                 child: Text(value),
@@ -572,7 +572,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                           child: ElevatedButton.icon(
                             onPressed: _calculate,
                             icon: Icon(Icons.calculate),
-                            label: Text('è¨ˆç®—ã™ã‚‹',
+                            label: Text('計算する',
                                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.indigo.shade600,
@@ -584,7 +584,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                     ),
                   ),
 
-                  // è¨ˆç®—çµæžœè¡¨ç¤º
+                  // 計算結果表示
                   if (_monthlyPayment > 0) ...[
                     _buildStyledCard(
                       key: _resultKey,
@@ -592,7 +592,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildSectionTitle('è¨ˆç®—çµæžœ', Icons.assessment),
+                          _buildSectionTitle('計算結果', Icons.assessment),
                           SizedBox(height: 16),
                           Container(
                             padding: EdgeInsets.all(16),
@@ -606,8 +606,8 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('æ¯Žæœˆæ”¯æ‰•é¡:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    Text('${formatter.format(_monthlyPayment.round())} å††',
+                                    Text('毎月支払額:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    Text('${formatter.format(_monthlyPayment.round())} 円',
                                         style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo.shade700)),
                                   ],
                                 ),
@@ -615,8 +615,8 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('æ”¯æ‰•å›žæ•°:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    Text('$_totalPayments å›ž',
+                                    Text('支払回数:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    Text('$_totalPayments 回',
                                         style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo.shade700)),
                                   ],
                                 ),
@@ -624,8 +624,8 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('ç·åˆ©æ¯:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    Text('${formatter.format(_totalInterest.round())} å††',
+                                    Text('総利息:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    Text('${formatter.format(_totalInterest.round())} 円',
                                         style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo.shade700)),
                                   ],
                                 ),
@@ -633,8 +633,8 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('æ”¯æ‰•ç·é¡:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    Text('${formatter.format(_totalAmount.round())} å††',
+                                    Text('支払総額:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    Text('${formatter.format(_totalAmount.round())} 円',
                                         style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo.shade700)),
                                   ],
                                 ),
@@ -646,9 +646,9 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                             children: [
                               Expanded(
                                 child: ElevatedButton.icon(
-                                  onPressed: () => _navigateToSchedulePage(_repaymentSchedule, 'è¿”æ¸ˆè¨ˆç”»è¡¨'),
+                                  onPressed: () => _navigateToSchedulePage(_repaymentSchedule, '返済計画表'),
                                   icon: Icon(Icons.table_chart),
-                                  label: Text('è¿”æ¸ˆè¨ˆç”»è¡¨ã‚’è¦‹ã‚‹'),
+                                  label: Text('返済計画表を見る'),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.indigo.shade600,
                                     padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -660,7 +660,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
                                 child: ElevatedButton.icon(
                                   onPressed: _showSaveDialog,
                                   icon: Icon(Icons.save),
-                                  label: Text('è¨ˆç®—çµæžœã‚’ä¿å­˜'),
+                                  label: Text('計算結果を保存'),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.green.shade600,
                                     padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),

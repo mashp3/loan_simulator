@@ -28,25 +28,25 @@ class DetailedPaymentScreen extends StatefulWidget {
 
 class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with AutomaticKeepAliveClientMixin {
   @override
-  bool get wantKeepAlive => true;  // ç”»é¢ã®çŠ¶æ…‹ã‚’ä¿æŒã™ã‚‹
+  bool get wantKeepAlive => true;  // 状態の保持を維持する
   
-  // åŸºæœ¬æƒ…å ±
+  // 基本情報
   final _loanAmountController = TextEditingController();
   final _interestRateController = TextEditingController();
   final _loanTermYearsController = TextEditingController();
   final _loanTermMonthsController = TextEditingController(text: '0');
-  String _repaymentMethod = 'å…ƒåˆ©å‡ç­‰';
+  String _repaymentMethod = '元利均等';
 
-  // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆè¨­å®š
+  // ボーナス返済設定
   bool _enableBonusPayment = false;
   final _bonusAmountController = TextEditingController();
   List<int> _bonusMonths = [6, 12];
 
-  // ç¹°ä¸Šè¿”æ¸ˆè¨­å®š
+  // 繰上返済設定
   bool _enableEarlyPayment = false;
   List<Map<String, TextEditingController>> _earlyPayments = [];
 
-  // è¨ˆç®—çµæžœ
+  // 計算結果
   double _basicMonthlyPayment = 0;
   int _basicTotalPayments = 0;
   double _basicTotalInterest = 0;
@@ -102,62 +102,62 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
     }
   }
 
-  // ãƒãƒªãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ¡ã‚½ãƒƒãƒ‰ã‚’è¿½åŠ 
+  // バリデーションメソッドを追加
   String? _validateInputs() {
-    // åŸºæœ¬æƒ…å ±ã®ãƒãƒªãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³
+    // 基本情報のバリデーション
     if (_loanAmountController.text.trim().isEmpty) {
-      return 'å€Ÿå…¥é‡‘é¡ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '借入金額を入力してください';
     }
     if (double.tryParse(_loanAmountController.text.replaceAll(',', '')) == null) {
-      return 'å€Ÿå…¥é‡‘é¡ã«ã¯æ•°å­—ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '借入金額には数値を入力してください';
     }
     if (_interestRateController.text.trim().isEmpty) {
-      return 'é‡‘åˆ©ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '金利を入力してください';
     }
     if (double.tryParse(_interestRateController.text) == null) {
-      return 'é‡‘åˆ©ã«ã¯æ•°å­—ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return '金利には数値を入力してください';
     }
     if (_loanTermYearsController.text.trim().isEmpty) {
-      return 'ãƒ­ãƒ¼ãƒ³æœŸé–“ï¼ˆå¹´ï¼‰ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return 'ローン期間（年）を入力してください';
     }
     if (int.tryParse(_loanTermYearsController.text) == null) {
-      return 'ãƒ­ãƒ¼ãƒ³æœŸé–“ï¼ˆå¹´ï¼‰ã«ã¯æ•°å­—ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+      return 'ローン期間（年）には数値を入力してください';
     }
 
     int years = int.parse(_loanTermYearsController.text);
     int months = int.tryParse(_loanTermMonthsController.text) ?? 0;
     
     if (years <= 0 && months <= 0) {
-      return 'ãƒ­ãƒ¼ãƒ³æœŸé–“ã¯1ãƒ¶æœˆä»¥ä¸Šã§ã‚ã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™';
+      return 'ローン期間は1ヶ月以上である必要があります';
     }
 
-    // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã®ãƒãƒªãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³ï¼ˆæœ‰åŠ¹ãªå ´åˆã®ã¿ï¼‰
+    // ボーナス返済のバリデーション（有効な場合のみ）
     if (_enableBonusPayment) {
       String bonusAmountText = _bonusAmountController.text.replaceAll(',', '').trim();
       if (bonusAmountText.isEmpty || double.tryParse(bonusAmountText) == null) {
-        return 'ã€Œãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆé¡ã€ã«æ•°å­—ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+        return '「ボーナス返済額」に数値を入力してください';
       }
     }
 
-    // ç¹°ä¸Šè¿”æ¸ˆã®ãƒãƒªãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³ï¼ˆæœ‰åŠ¹ãªå ´åˆã®ã¿ï¼‰
+    // 繰上返済のバリデーション（有効な場合のみ）
     if (_enableEarlyPayment) {
       for (int i = 0; i < _earlyPayments.length; i++) {
         String monthText = _earlyPayments[i]['month']!.text.trim();
         String amountText = _earlyPayments[i]['amount']!.text.replaceAll(',', '').trim();
         
         if (monthText.isNotEmpty && int.tryParse(monthText) == null) {
-          return 'ç¹°ä¸Šè¿”æ¸ˆã®ã€Œè¿”æ¸ˆæœˆã€ã«æ•°å­—ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+          return '繰上返済の「返済月」に数値を入力してください';
         }
         if (amountText.isNotEmpty && double.tryParse(amountText) == null) {
-          return 'ç¹°ä¸Šè¿”æ¸ˆã®ã€Œç¹°ä¸Šé‡‘é¡ã€ã«æ•°å­—ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„';
+          return '繰上返済の「繰上金額」に数値を入力してください';
         }
       }
     }
 
-    return null; // ã‚¨ãƒ©ãƒ¼ãªã—
+    return null; // エラーなし
   }
 
-  // ã‚¨ãƒ©ãƒ¼ãƒ€ã‚¤ã‚¢ãƒ­ã‚°è¡¨ç¤º
+  // エラーダイアログ表示
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
@@ -167,7 +167,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
           children: [
             Icon(Icons.error_outline, color: Colors.red.shade600, size: 28),
             SizedBox(width: 8),
-            Text('å…¥åŠ›ã‚¨ãƒ©ãƒ¼'),
+            Text('入力エラー'),
           ],
         ),
         content: Text(message, style: TextStyle(fontSize: 16)),
@@ -184,12 +184,12 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
     );
   }
 
-  // è©³ç´°è¨ˆç®—ãƒ¡ã‚¤ãƒ³
+  // 詳細計算メイン
   void _calculateDetailed() async {
-    // ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã‚’é–‰ã˜ã‚‹
+    // キーボードを閉じる
     FocusScope.of(context).unfocus();
 
-    // ãƒãƒªãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³ãƒã‚§ãƒƒã‚¯
+    // バリデーションチェック
     String? validationError = _validateInputs();
     if (validationError != null) {
       _showErrorDialog(validationError);
@@ -204,13 +204,13 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
     int totalMonths = years * 12 + months;
     double monthlyInterest = annualInterest / 100 / 12;
 
-    // åŸºæœ¬è¨ˆç®—
+    // 基本計算
     _calculateBasic(loanAmount, monthlyInterest, totalMonths);
 
-    // ã‚ªãƒ—ã‚·ãƒ§ãƒ³è¾¼ã¿è¨ˆç®—
+    // オプション込み計算
     _calculateWithOptions(loanAmount, monthlyInterest, totalMonths);
 
-    // è¨ˆç®—çµæžœãŒè¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹éƒ¨åˆ†ã¾ã§è‡ªå‹•ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«
+    // 計算結果が表示されている部分まで自動スクロール
     if (_resultKey.currentContext != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final context = _resultKey.currentContext;
@@ -226,7 +226,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
   }
 
   void _calculateBasic(double loanAmount, double monthlyInterest, int totalMonths) {
-    if (_repaymentMethod == 'å…ƒåˆ©å‡ç­‰') {
+    if (_repaymentMethod == '元利均等') {
       double monthlyPayment = loanAmount *
           monthlyInterest /
           (1 - (1 / pow(1 + monthlyInterest, totalMonths)));
@@ -240,7 +240,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
     }
   }
 
-  // ãƒœãƒ¼ãƒŠã‚¹æœˆåˆ¤å®šãƒ¡ã‚½ãƒƒãƒ‰
+  // ボーナス月判定メソッド
   bool _isBonusMonth(int monthNumber) {
     int monthInYear = monthNumber % 12;
     if (monthInYear == 0) monthInYear = 12;
@@ -248,13 +248,13 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
   }
 
   void _calculateWithOptions(double loanAmount, double monthlyInterest, int totalMonths) {
-    // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆæƒ…å ±ã®æº–å‚™
+    // ボーナス返済情報の準備
     double bonusAmount = 0;
     if (_enableBonusPayment) {
       bonusAmount = double.tryParse(_bonusAmountController.text.replaceAll(',', '')) ?? 0;
     }
 
-    // ç¹°ä¸Šè¿”æ¸ˆæƒ…å ±ã®æº–å‚™
+    // 繰上返済情報の準備
     Map<int, double> earlyPaymentMap = {};
     if (_enableEarlyPayment) {
       for (var payment in _earlyPayments) {
@@ -266,11 +266,11 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
       }
     }
 
-    // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã‚’è€ƒæ…®ã—ãŸæœˆã€…è¿”æ¸ˆé¡ã®è¨ˆç®—
+    // ボーナス返済を考慮した月々返済額の計算
     double monthlyPayment = _basicMonthlyPayment;
     
     if (_enableBonusPayment && bonusAmount > 0) {
-      // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã®ç¾åœ¨ä¾¡å€¤ã‚’è¨ˆç®—
+      // ボーナス返済の現在価値を計算
       double bonusPresentValue = 0;
       for (int i = 1; i <= totalMonths; i++) {
         if (_isBonusMonth(i)) {
@@ -278,10 +278,10 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
         }
       }
       
-      // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã‚’å·®ã—å¼•ã„ãŸå®Ÿè³ªå€Ÿå…¥é¡
+      // ボーナス返済を差し引いた実質元本額
       double adjustedLoanAmount = loanAmount - bonusPresentValue;
       
-      // æœˆã€…è¿”æ¸ˆé¡ã‚’è¨ˆç®—
+      // 月々返済額を計算
       monthlyPayment = adjustedLoanAmount *
           monthlyInterest /
           (1 - (1 / pow(1 + monthlyInterest, totalMonths)));
@@ -298,24 +298,24 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
       double currentPayment = monthlyPayment;
       String specialNote = '';
 
-      // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã®å‡¦ç†
+      // ボーナス返済の処理
       bool isBonusMonth = _enableBonusPayment && _isBonusMonth(i);
       if (isBonusMonth && bonusAmount > 0) {
         currentPayment += bonusAmount;
         principal += bonusAmount;
-        specialNote = 'ãƒœãƒ¼ãƒŠã‚¹';
+        specialNote = 'ボーナス';
       }
 
-      // ç¹°ä¸Šè¿”æ¸ˆã®å‡¦ç†
+      // 繰上返済の処理
       bool hasEarlyPayment = _enableEarlyPayment && earlyPaymentMap.containsKey(i);
       if (hasEarlyPayment) {
         double earlyPaymentAmount = earlyPaymentMap[i]!;
         currentPayment += earlyPaymentAmount;
         principal += earlyPaymentAmount;
-        specialNote = specialNote.isEmpty ? 'ç¹°ä¸Š' : '${specialNote}+ç¹°ä¸Š';
+        specialNote = specialNote.isEmpty ? '繰上' : '${specialNote}+繰上';
       }
 
-      // æœ€å¾Œã®å›žã§æ®‹é«˜èª¿æ•´
+      // 最後の回で残高調整
       if (principal > balance) {
         currentPayment = currentPayment - (principal - balance);
         principal = balance;
@@ -325,14 +325,14 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
       totalInterest += interest;
       actualMonths = i;
 
-      // ã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ«ã«è¿½åŠ 
+      // スケジュールに追加
       schedule.add([
         i.toString(),
         formatter.format(currentPayment.round()),
         formatter.format(principal.round()),
         formatter.format(interest.round()),
         formatter.format(balance.round()),
-        specialNote.isEmpty ? 'é€šå¸¸' : specialNote
+        specialNote.isEmpty ? '通常' : specialNote
       ]);
 
       if (balance <= 0) break;
@@ -369,7 +369,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
     if (_detailedSchedule.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('ã¾ãšè¨ˆç®—ã‚’å®Ÿè¡Œã—ã¦ãã ã•ã„'),
+          content: Text('まず計算を実行してください'),
           backgroundColor: Colors.orange,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -379,19 +379,19 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
     }
 
     try {
-      // CSVãƒ‡ãƒ¼ã‚¿ä½œæˆï¼ˆæ—¥æœ¬èªžãƒ˜ãƒƒãƒ€ãƒ¼ï¼‰
+      // CSVデータ作成（日本語ヘッダー）
       List<List<String>> csvData = [
-        ['æ”¯æ‰•å›žæ•°', 'æ¯Žæœˆã®æ”¯æ‰•é¡', 'å…ƒé‡‘', 'åˆ©æ¯', 'æ®‹é«˜', 'è¿”æ¸ˆç¨®åˆ¥']
+        ['支払回数', '毎月の支払額', '元金', '利息', '残高', '返済種別']
       ];
       csvData.addAll(_detailedSchedule);
 
       String csv = const ListToCsvConverter().convert(csvData);
       
-      // ãƒ•ã‚¡ã‚¤ãƒ«åã‚’ç”Ÿæˆ
+      // ファイル名を生成
       final timestamp = DateTime.now();
       final filename = 'detailed_repayment_schedule_${timestamp.year}${timestamp.month.toString().padLeft(2, '0')}${timestamp.day.toString().padLeft(2, '0')}_${timestamp.hour.toString().padLeft(2, '0')}${timestamp.minute.toString().padLeft(2, '0')}.csv';
       
-      // CSVãƒ‡ãƒ¼ã‚¿ã‚’å…±æœ‰
+      // CSVデータを共有
       final result = await Share.shareXFiles([
         XFile.fromData(
           Uint8List.fromList(csv.codeUnits),
@@ -399,11 +399,11 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
           mimeType: 'text/csv',
         ),
       ], 
-      text: 'è©³ç´°è¿”æ¸ˆè¨ˆç”»è¡¨ã®CSVãƒ•ã‚¡ã‚¤ãƒ«ã§ã™ã€‚',
-      subject: 'è©³ç´°è¿”æ¸ˆè¨ˆç”»è¡¨',
+      text: '詳細返済計画表のCSVファイルです。',
+      subject: '詳細返済計画表',
       );
 
-      // å®Ÿéš›ã«å…±æœ‰ã•ã‚ŒãŸå ´åˆã®ã¿æˆåŠŸãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’è¡¨ç¤º
+      // 実際に共有された場合のみ成功メッセージを表示
       if (result.status == ShareResultStatus.success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -411,7 +411,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
               children: [
                 Icon(Icons.share, color: Colors.white),
                 SizedBox(width: 8),
-                Text('CSVãƒ•ã‚¡ã‚¤ãƒ«ã‚’å…±æœ‰ã—ã¾ã—ãŸ'),
+                Text('CSVファイルを共有しました'),
               ],
             ),
             backgroundColor: Colors.lightBlue.shade400,
@@ -428,7 +428,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
             children: [
               Icon(Icons.error, color: Colors.white),
               SizedBox(width: 8),
-              Text('ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ: $e'),
+              Text('エラーが発生しました: $e'),
             ],
           ),
           backgroundColor: Colors.red,
@@ -455,7 +455,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
               child: Icon(Icons.star, color: Colors.white, size: 24),
             ),
             SizedBox(width: 12),
-            Text('ãƒ—ãƒ¬ãƒŸã‚¢ãƒ ãƒ—ãƒ©ãƒ³'),
+            Text('プレミアムプラン'),
           ],
         ),
         content: Column(
@@ -463,7 +463,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'CSVå…±æœ‰æ©Ÿèƒ½ã¯\nãƒ—ãƒ¬ãƒŸã‚¢ãƒ ãƒ—ãƒ©ãƒ³é™å®šã§ã™',
+              'CSV共有機能は\nプレミアムプラン限定です',
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 20),
@@ -482,7 +482,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                       Icon(Icons.star, color: Colors.amber.shade600, size: 20),
                       SizedBox(width: 8),
                       Text(
-                        'ãƒ—ãƒ¬ãƒŸã‚¢ãƒ æ©Ÿèƒ½',
+                        'プレミアム機能',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.amber.shade800,
@@ -491,7 +491,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                     ],
                   ),
                   SizedBox(height: 12),
-                  Text('â€¢ ãƒ­ãƒ¼ãƒ³è¨ˆç®—çµæžœã®ä¿å­˜\nâ€¢ ãƒ‡ãƒ¼ã‚¿æ¯”è¼ƒæ©Ÿèƒ½\nâ€¢ ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆè¨ˆç®—\nâ€¢ æ—©æœŸè¿”æ¸ˆè¨ˆç®—\nâ€¢ CSVå…±æœ‰æ©Ÿèƒ½\nâ€¢ åºƒå‘Šéžè¡¨ç¤º'),
+                  Text('• ローン計算結果の保存\n• データ比較機能\n• ボーナス返済計算\n• 早期返済計算\n• CSV共有機能\n• 広告非表示'),
                 ],
               ),
             ),
@@ -500,15 +500,15 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('é–‰ã˜ã‚‹'),
+            child: Text('閉じる'),
           ),
           ElevatedButton.icon(
             onPressed: () {
               Navigator.pop(context);
-              // ãƒ—ãƒ¬ãƒŸã‚¢ãƒ è³¼å…¥ç”»é¢ã¸ã®é·ç§»ã¯ã“ã“ã§å®Ÿè£…
+              // プレミアム購入画面への遷移はここで実装
             },
             icon: Icon(Icons.shopping_cart),
-            label: Text('è³¼å…¥ã™ã‚‹ï¼ˆÂ¥230ï¼‰'),
+            label: Text('購入する（¥230）'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.amber,
               foregroundColor: Colors.white,
@@ -571,7 +571,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // åŸºæœ¬æƒ…å ±å…¥åŠ›
+            // 基本情報入力
             _buildStyledCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -579,7 +579,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                   TextField(
                     controller: _loanAmountController,
                     decoration: InputDecoration(
-                      labelText: 'å€Ÿå…¥é‡‘é¡(å††)',
+                      labelText: '借入金額(円)',
                       prefixIcon: Icon(Icons.monetization_on_rounded,
                           color: Colors.indigo.shade600),
                     ),
@@ -601,7 +601,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                   TextField(
                     controller: _interestRateController,
                     decoration: InputDecoration(
-                      labelText: 'å¹´åˆ©(%)',
+                      labelText: '年利(%)',
                       prefixIcon: Icon(Icons.percent_rounded,
                           color: Colors.indigo.shade600),
                     ),
@@ -614,7 +614,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                         child: TextField(
                           controller: _loanTermYearsController,
                           decoration: InputDecoration(
-                            labelText: 'å¹´æ•°',
+                            labelText: '年数',
                             prefixIcon: Icon(Icons.calendar_today_rounded,
                                 color: Colors.indigo.shade600),
                           ),
@@ -626,7 +626,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                         child: TextField(
                           controller: _loanTermMonthsController,
                           decoration: InputDecoration(
-                            labelText: 'ãƒ¶æœˆ',
+                            labelText: 'ヶ月',
                             prefixIcon: Icon(Icons.calendar_month_rounded,
                                 color: Colors.indigo.shade600),
                           ),
@@ -639,15 +639,15 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
               ),
             ),
 
-            // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆè¨­å®š
+            // ボーナス返済設定
             _buildStyledCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle('ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆè¨­å®š', Icons.card_giftcard_outlined),
+                  _buildSectionTitle('ボーナス返済設定', Icons.card_giftcard_outlined),
                   SizedBox(height: 16),
                   SwitchListTile(
-                    title: Text('ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã‚’åˆ©ç”¨ã™ã‚‹'),
+                    title: Text('ボーナス返済を利用する'),
                     value: _enableBonusPayment,
                     onChanged: (bool value) {
                       setState(() {
@@ -672,7 +672,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
           Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
           SizedBox(width: 8),
           Text(
-            'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆæœˆã‚’é¸æŠžã—ã¦ãã ã•ã„',
+            'ボーナス返済月を選択してください',
             style: TextStyle(
               fontSize: 14,
               color: Colors.blue.shade700,
@@ -683,12 +683,12 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
       ),
       SizedBox(height: 12),
       
-      // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆæœˆé¸æŠž
+      // ボーナス返済月選択
       Wrap(
         spacing: 12,
         children: [
           FilterChip(
-            label: Text('6æœˆ'),
+            label: Text('6月'),
             selected: _bonusMonths.contains(6),
             onSelected: (selected) {
               setState(() {
@@ -703,7 +703,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
             checkmarkColor: Colors.blue.shade700,
           ),
           FilterChip(
-            label: Text('12æœˆ'),
+            label: Text('12月'),
             selected: _bonusMonths.contains(12),
             onSelected: (selected) {
               setState(() {
@@ -721,7 +721,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
       ),
       SizedBox(height: 8),
       Text(
-        'é¸æŠžã—ãŸæœˆã«ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆãŒå®Ÿè¡Œã•ã‚Œã¾ã™',
+        '選択した月にボーナス返済が実行されます',
         style: TextStyle(
           fontSize: 12,
           color: Colors.blue.shade600,
@@ -735,7 +735,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                     TextField(
                       controller: _bonusAmountController,
                       decoration: InputDecoration(
-                        labelText: 'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆé¡(å††)',
+                        labelText: 'ボーナス返済額(円)',
                         prefixIcon: Icon(Icons.card_giftcard,
                             color: Colors.indigo.shade600),
                       ),
@@ -758,15 +758,15 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
               ),
             ),
 
-            // ç¹°ä¸Šè¿”æ¸ˆè¨­å®š
+            // 繰上返済設定
             _buildStyledCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle('ç¹°ä¸Šè¿”æ¸ˆè¨­å®š', Icons.trending_up),
+                  _buildSectionTitle('繰上返済設定', Icons.trending_up),
                   SizedBox(height: 16),
                   SwitchListTile(
-                    title: Text('ç¹°ä¸Šè¿”æ¸ˆã‚’åˆ©ç”¨ã™ã‚‹'),
+                    title: Text('繰上返済を利用する'),
                     value: _enableEarlyPayment,
                     onChanged: (bool value) {
                       setState(() {
@@ -789,7 +789,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'ç¹°ä¸Šè¿”æ¸ˆã«ã‚ˆã‚Šç·åˆ©æ¯ã‚’å‰Šæ¸›ã§ãã¾ã™',
+                              '繰上返済により総利息を削減できます',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.green.shade700,
@@ -814,7 +814,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                           children: [
                             Row(
                               children: [
-                                Text('ç¹°ä¸Šè¿”æ¸ˆ ${index + 1}', 
+                                Text('繰上返済 ${index + 1}', 
                                     style: TextStyle(fontWeight: FontWeight.bold)),
                                 Spacer(),
                                 if (_earlyPayments.length > 1)
@@ -831,8 +831,8 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                                 TextField(
                                   controller: _earlyPayments[index]['month']!,
                                   decoration: InputDecoration(
-                                    labelText: 'è¿”æ¸ˆæœˆ',
-                                    hintText: 'ä¾‹: 12 (12ãƒ¶æœˆç›®)',
+                                    labelText: '返済月',
+                                    hintText: '例: 12 (12ヶ月目)',
                                     prefixIcon: Icon(Icons.event,
                                         color: Colors.indigo.shade600),
                                   ),
@@ -842,7 +842,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                                 TextField(
                                   controller: _earlyPayments[index]['amount']!,
                                   decoration: InputDecoration(
-                                    labelText: 'ç¹°ä¸Šé‡‘é¡(å††)',
+                                    labelText: '繰上金額(円)',
                                     prefixIcon: Icon(Icons.trending_up,
                                         color: Colors.indigo.shade600),
                                   ),
@@ -870,7 +870,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                       child: ElevatedButton.icon(
                         onPressed: _addEarlyPaymentField,
                         icon: Icon(Icons.add),
-                        label: Text('ç¹°ä¸Šè¿”æ¸ˆã‚’è¿½åŠ '),
+                        label: Text('繰上返済を追加'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green.shade600,
                         ),
@@ -881,14 +881,14 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
               ),
             ),
 
-            // è¨ˆç®—ãƒœã‚¿ãƒ³
+            // 計算ボタン
             Center(
               child: Container(
                 margin: EdgeInsets.symmetric(vertical: 24),
                 child: ElevatedButton.icon(
                   onPressed: _calculateDetailed,
                   icon: Icon(Icons.calculate),
-                  label: Text('è©³ç´°è¨ˆç®—',
+                  label: Text('詳細計算',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.indigo.shade600,
@@ -898,7 +898,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
               ),
             ),
 
-            // è¨ˆç®—çµæžœè¡¨ç¤º
+            // 計算結果表示
             if (_detailedMonthlyPayment > 0) ...[
               _buildStyledCard(
                 key: _resultKey,
@@ -906,7 +906,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionTitle('è©³ç´°è¨ˆç®—çµæžœ', Icons.assessment),
+                    _buildSectionTitle('詳細計算結果', Icons.assessment),
                     SizedBox(height: 16),
                     Container(
                       padding: EdgeInsets.all(16),
@@ -920,8 +920,8 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('æ¯Žæœˆæ”¯æ‰•é¡:', style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text('${formatter.format(_detailedMonthlyPayment.round())} å††',
+                              Text('毎月支払額:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              Text('${formatter.format(_detailedMonthlyPayment.round())} 円',
                                   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo.shade700)),
                             ],
                           ),
@@ -929,8 +929,8 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('æ”¯æ‰•å›žæ•°:', style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text('$_detailedTotalPayments å›ž',
+                              Text('支払回数:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              Text('$_detailedTotalPayments 回',
                                   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo.shade700)),
                             ],
                           ),
@@ -938,8 +938,8 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('ç·åˆ©æ¯:', style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text('${formatter.format(_detailedTotalInterest.round())} å††',
+                              Text('総利息:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              Text('${formatter.format(_detailedTotalInterest.round())} 円',
                                   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo.shade700)),
                             ],
                           ),
@@ -947,8 +947,8 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('æ”¯æ‰•ç·é¡:', style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text('${formatter.format(_detailedTotalAmount.round())} å††',
+                              Text('支払総額:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              Text('${formatter.format(_detailedTotalAmount.round())} 円',
                                   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo.shade700)),
                             ],
                           ),
@@ -960,9 +960,9 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                       children: [
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: () => _navigateToSchedulePage(_detailedSchedule, 'è©³ç´°è¿”æ¸ˆè¨ˆç”»è¡¨'),
+                            onPressed: () => _navigateToSchedulePage(_detailedSchedule, '詳細返済計画表'),
                             icon: Icon(Icons.table_chart),
-                            label: Text('è¿”æ¸ˆè¨ˆç”»è¡¨ã‚’è¦‹ã‚‹'),
+                            label: Text('返済計画表を見る'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.indigo.shade600,
                               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -974,7 +974,7 @@ class _DetailedPaymentScreenState extends State<DetailedPaymentScreen> with Auto
                           child: ElevatedButton.icon(
                             onPressed: () => _shareDetailedCSV(context),
                             icon: Icon(Icons.share),
-                            label: Text('CSVã‚’å…±æœ‰'),
+                            label: Text('CSVを共有'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.lightBlue.shade600,
                               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),

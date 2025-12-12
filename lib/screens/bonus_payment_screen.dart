@@ -23,7 +23,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
   final _loanTermMonthsController = TextEditingController(text: '0');
   final _bonusAmountController = TextEditingController();
 
-  String _repaymentMethod = 'å…ƒåˆ©å‡ç­‰';
+  String _repaymentMethod = '元利均等';
   List<int> _bonusMonths = [6, 12];
 
   double _monthlyPaymentWithoutBonus = 0;
@@ -50,14 +50,14 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
     super.dispose();
   }
 
-  // ãƒœãƒ¼ãƒŠã‚¹æœˆåˆ¤å®šãƒ¡ã‚½ãƒƒãƒ‰
+  // ボーナス月判定メソッド
   bool _isBonusMonth(int monthNumber) {
     int monthInYear = monthNumber % 12;
     if (monthInYear == 0) monthInYear = 12;
     return _bonusMonths.contains(monthInYear);
   }
 
-  // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã‚’è€ƒæ…®ã—ãŸæœˆã€…è¿”æ¸ˆé¡è¨ˆç®—
+  // ボーナス返済を考慮した月々返済額計算
   double _calculateMonthlyPaymentWithBonus(
     double loanAmount,
     double monthlyInterest,
@@ -70,7 +70,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
           (1 - (1 / pow(1 + monthlyInterest, totalMonths)));
     }
 
-    // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã®ç¾åœ¨ä¾¡å€¤ã‚’è¨ˆç®—
+    // ボーナス返済の現在価値を計算
     double bonusPresentValue = 0;
     for (int i = 1; i <= totalMonths; i++) {
       if (_isBonusMonth(i)) {
@@ -78,18 +78,18 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
       }
     }
 
-    // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã‚’å·®ã—å¼•ã„ãŸå®Ÿè³ªå€Ÿå…¥é¡
+    // ボーナス返済を差し引いた実質元本額
     double adjustedLoanAmount = loanAmount - bonusPresentValue;
 
-    // æœˆã€…è¿”æ¸ˆé¡ã‚’è¨ˆç®—
+    // 月々返済額を計算
     return adjustedLoanAmount *
         monthlyInterest /
         (1 - (1 / pow(1 + monthlyInterest, totalMonths)));
   }
 
-  // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆåŠ¹æžœã‚’è¨ˆç®—
+  // ボーナス返済効果を計算
   void _calculateBonusEffect() {
-    // ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã‚’é–‰ã˜ã‚‹
+    // キーボードを閉じる
     FocusScope.of(context).unfocus();
 
     double loanAmount =
@@ -103,22 +103,22 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
         double.tryParse(_bonusAmountController.text.replaceAll(',', '')) ?? 0;
 
     if (loanAmount <= 0 || totalMonths <= 0) {
-      _showErrorDialog('å…¥åŠ›å€¤ã‚’ç¢ºèªã—ã¦ãã ã•ã„');
+      _showErrorDialog('入力値を確認してください');
       return;
     }
 
-    // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆãªã—ã®è¨ˆç®—
+    // ボーナス返済なしの計算
     double monthlyPaymentWithoutBonus = loanAmount *
         monthlyInterest /
         (1 - (1 / pow(1 + monthlyInterest, totalMonths)));
     double totalInterestWithoutBonus =
         (monthlyPaymentWithoutBonus * totalMonths) - loanAmount;
 
-    // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã‚ã‚Šã®è¨ˆç®—
+    // ボーナス返済ありの計算
     double monthlyPaymentWithBonus = _calculateMonthlyPaymentWithBonus(
         loanAmount, monthlyInterest, totalMonths, bonusAmount);
 
-    // è©³ç´°ã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ«è¨ˆç®—ï¼ˆãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã‚ã‚Šï¼‰
+    // 詳細スケジュール計算（ボーナス返済あり）
     List<List<String>> schedule = [];
     double balance = loanAmount;
     double totalInterestWithBonus = 0;
@@ -128,7 +128,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
       double principal = monthlyPaymentWithBonus - interest;
       double currentPayment = monthlyPaymentWithBonus;
 
-      // ãƒœãƒ¼ãƒŠã‚¹æœˆã®åˆ¤å®šã¨å‡¦ç†
+      // ボーナス月の判定と処理
       bool isBonusMonth = _isBonusMonth(i);
       if (isBonusMonth) {
         currentPayment += bonusAmount;
@@ -145,7 +145,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
         formatter.format(principal.round()),
         formatter.format(interest.round()),
         formatter.format(balance.round()),
-        isBonusMonth ? 'ãƒœãƒ¼ãƒŠã‚¹æœˆ' : '',
+        isBonusMonth ? 'ボーナス月' : '',
       ]);
     }
 
@@ -160,7 +160,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
       _scheduleWithBonus = schedule;
     });
 
-    // è¨ˆç®—çµæžœãŒè¡¨ç¤ºã•ã‚Œã‚‹éƒ¨åˆ†ã¾ã§è‡ªå‹•ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«
+    // 計算結果が表示される部分まで自動スクロール
     if (_resultKey.currentContext != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final context = _resultKey.currentContext;
@@ -183,7 +183,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
           children: [
             Icon(Icons.error, color: Colors.red),
             SizedBox(width: 8),
-            Text('ã‚¨ãƒ©ãƒ¼'),
+            Text('エラー'),
           ],
         ),
         content: Text(message),
@@ -293,7 +293,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆè¨ˆç®—'),
+        title: Text('ボーナス返済計算'),
         backgroundColor: Colors.indigo.shade600,
         foregroundColor: Colors.white,
       ),
@@ -306,17 +306,17 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ ã‚»ã‚¯ã‚·ãƒ§ãƒ³
+            // 入力フォームセクション
             _buildStyledCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle('ãƒ­ãƒ¼ãƒ³æƒ…å ±å…¥åŠ›', Icons.edit_note),
+                  _buildSectionTitle('ローン情報入力', Icons.edit_note),
                   SizedBox(height: 20),
                   TextField(
                     controller: _loanAmountController,
                     decoration: InputDecoration(
-                      labelText: 'ãƒ­ãƒ¼ãƒ³é‡‘é¡(å††)',
+                      labelText: 'ローン金額(円)',
                       prefixIcon: Icon(Icons.monetization_on_rounded,
                           color: Colors.indigo.shade600),
                     ),
@@ -338,7 +338,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                   TextField(
                     controller: _interestRateController,
                     decoration: InputDecoration(
-                      labelText: 'é‡‘åˆ©(å¹´åˆ© %)',
+                      labelText: '金利(年利 %)',
                       prefixIcon: Icon(Icons.percent_rounded,
                           color: Colors.indigo.shade600),
                     ),
@@ -348,7 +348,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                   TextField(
                     controller: _loanTermYearsController,
                     decoration: InputDecoration(
-                      labelText: 'ãƒ­ãƒ¼ãƒ³æœŸé–“(å¹´)',
+                      labelText: 'ローン期間(年)',
                       prefixIcon: Icon(Icons.calendar_today_rounded,
                           color: Colors.indigo.shade600),
                     ),
@@ -358,7 +358,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                   TextField(
                     controller: _loanTermMonthsController,
                     decoration: InputDecoration(
-                      labelText: 'ãƒ­ãƒ¼ãƒ³æœŸé–“(æœˆ)',
+                      labelText: 'ローン期間(月)',
                       prefixIcon: Icon(Icons.calendar_month_rounded,
                           color: Colors.indigo.shade600),
                     ),
@@ -368,7 +368,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                   TextField(
                     controller: _bonusAmountController,
                     decoration: InputDecoration(
-                      labelText: 'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆé¡(å††)',
+                      labelText: 'ボーナス返済額(円)',
                       prefixIcon: Icon(Icons.card_giftcard_rounded,
                           color: Colors.indigo.shade600),
                     ),
@@ -403,7 +403,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                                 color: Colors.indigo.shade700, size: 20),
                             SizedBox(width: 8),
                             Text(
-                              'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã«ã¤ã„ã¦',
+                              'ボーナス返済について',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.indigo.shade700,
@@ -413,7 +413,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'â€¢ æ¯Žå¹´6æœˆã¨12æœˆã«ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã‚’è¡Œã„ã¾ã™\nâ€¢ ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆåˆ†ã¯å…¨é¡å…ƒé‡‘è¿”æ¸ˆã«å……å½“ã•ã‚Œã¾ã™\nâ€¢ æœˆã€…ã®è¿”æ¸ˆé¡ã¯è‡ªå‹•çš„ã«èª¿æ•´ã•ã‚Œã¾ã™',
+                          '• 毎年6月と12月にボーナス返済を行います\n• ボーナス返済分は全額元金返済に充当されます\n• 月々の返済額は自動的に調整されます',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.indigo.shade700,
@@ -426,7 +426,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
               ),
             ),
 
-            // è¨ˆç®—ãƒœã‚¿ãƒ³
+            // 計算ボタン
             Center(
               child: Container(
                 decoration: BoxDecoration(
@@ -442,7 +442,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                 child: ElevatedButton.icon(
                   onPressed: _calculateBonusEffect,
                   icon: Icon(Icons.calculate_rounded, size: 24),
-                  label: Text('ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆåŠ¹æžœã‚’è¨ˆç®—',
+                  label: Text('ボーナス返済効果を計算',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
@@ -453,26 +453,26 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
               ),
             ),
 
-            // è¨ˆç®—çµæžœè¡¨ç¤ºã‚»ã‚¯ã‚·ãƒ§ãƒ³
+            // 計算結果表示セクション
             if (_monthlyPaymentWithBonus > 0) ...[
-              // æ¯”è¼ƒçµæžœ
+              // 比較結果
               _buildStyledCard(
                 key: _resultKey,
                 color: Colors.indigo.shade50,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionTitle('æ¯”è¼ƒçµæžœ', Icons.compare),
+                    _buildSectionTitle('比較結果', Icons.compare),
                     SizedBox(height: 20),
 
-                    // ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆãªã— vs ã‚ã‚Š
+                    // ボーナス返済なし vs あり
                     Row(
                       children: [
                         Expanded(
                           child: _buildComparisonCard(
-                            'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆãªã—\næœˆã€…æ”¯æ‰•é¡',
+                            'ボーナス返済なし\n月々支払額',
                             _monthlyPaymentWithoutBonus,
-                            'å††',
+                            '円',
                             Colors.blue.shade600,
                             Icons.payment,
                           ),
@@ -480,9 +480,9 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                         SizedBox(width: 12),
                         Expanded(
                           child: _buildComparisonCard(
-                            'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã‚ã‚Š\næœˆã€…æ”¯æ‰•é¡',
+                            'ボーナス返済あり\n月々支払額',
                             _monthlyPaymentWithBonus,
-                            'å††',
+                            '円',
                             Colors.indigo.shade600,
                             Icons.card_giftcard,
                           ),
@@ -495,9 +495,9 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                       children: [
                         Expanded(
                           child: _buildComparisonCard(
-                            'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆãªã—\nç·åˆ©æ¯',
+                            'ボーナス返済なし\n総利息',
                             _totalInterestWithoutBonus,
-                            'å††',
+                            '円',
                             Colors.red.shade600,
                             Icons.trending_up,
                           ),
@@ -505,9 +505,9 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                         SizedBox(width: 12),
                         Expanded(
                           child: _buildComparisonCard(
-                            'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã‚ã‚Š\nç·åˆ©æ¯',
+                            'ボーナス返済あり\n総利息',
                             _totalInterestWithBonus,
-                            'å††',
+                            '円',
                             Colors.orange.shade600,
                             Icons.trending_up,
                           ),
@@ -516,7 +516,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                     ),
                     SizedBox(height: 16),
 
-                    // æœˆã€…æ”¯æ‰•é¡ã®è»½æ¸›åŠ¹æžœã®è©³ç´°è¡¨ç¤º
+                    // 月々支払額の軽減効果の詳細表示
                     Container(
                       padding: EdgeInsets.all(20),
                       decoration: BoxDecoration(
@@ -531,7 +531,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                               color: Colors.indigo.shade600, size: 36),
                           SizedBox(height: 12),
                           Text(
-                            'æœˆã€…æ”¯æ‰•é¡ã®è»½æ¸›',
+                            '月々支払額の軽減',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.indigo.shade700,
@@ -540,7 +540,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            '${formatter.format((_monthlyPaymentWithoutBonus - _monthlyPaymentWithBonus).round())} å††',
+                            '${formatter.format((_monthlyPaymentWithoutBonus - _monthlyPaymentWithBonus).round())} 円',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -549,7 +549,7 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆã«ã‚ˆã‚Šã€æœˆã€…ã®è² æ‹…ã‚’è»½æ¸›ã§ãã¾ã™',
+                            'ボーナス返済により、月々の負担を軽減できます',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.indigo.shade600,
@@ -563,14 +563,14 @@ class _BonusPaymentScreenState extends State<BonusPaymentScreen> {
                 ),
               ),
 
-              // ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ãƒœã‚¿ãƒ³
+              // アクションボタン
               SizedBox(height: 16),
               Center(
                 child: ElevatedButton.icon(
                   onPressed: () => _navigateToSchedulePage(
-                      _scheduleWithBonus, 'ãƒœãƒ¼ãƒŠã‚¹è¿”æ¸ˆ è¿”æ¸ˆè¨ˆç”»è¡¨'),
+                      _scheduleWithBonus, 'ボーナス返済 返済計画表'),
                   icon: Icon(Icons.table_chart),
-                  label: Text('è¿”æ¸ˆè¨ˆç”»è¡¨ã‚’è¦‹ã‚‹'),
+                  label: Text('返済計画表を見る'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.indigo.shade600,
                     padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
