@@ -565,18 +565,16 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        // 【修正】タイトルをシンプルなTextウィジェットに変更
+        // 【修正】タイトルを完全表示できるよう最適化
         title: Text(
-          MediaQuery.of(context).size.width < 340 
-              ? 'ローン計算' 
-              : 'ローンシミュレータ',
+          'ローンシミュレータ',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: MediaQuery.of(context).size.width < 375 ? 16 : 18,
           ),
         ),
-        // 【修正】アイコンを別途leadingで表示
+        // 左側の計算アイコン
         leading: Container(
           margin: EdgeInsets.all(8),
           child: Icon(
@@ -588,71 +586,40 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: Colors.indigo.shade600,
         elevation: 0,
         centerTitle: false,
+        // 【修正】上部プレミアムボタンを廃止、必要最小限のボタンのみ
         actions: [
-          // 情報アイコン（プライバシーポリシー） - アイコンサイズを小さく
+          // 情報アイコン（プライバシーポリシー）
           IconButton(
-            icon: Icon(Icons.info_outline, size: 20),
+            icon: Icon(Icons.info_outline, size: 22),
             onPressed: _showPrivacyPolicy,
             tooltip: 'プライバシーポリシー',
-            padding: EdgeInsets.all(8),
           ),
-          // 復元ボタン（プレミアム未購入時のみ表示） - アイコンサイズを小さく
+          // 復元ボタン（プレミアム未購入時のみ表示）
           if (!_appState.isPremium)
             IconButton(
-              icon: Icon(Icons.restore, size: 20),
+              icon: Icon(Icons.restore, size: 22),
               onPressed: _handleRestorePurchases,
               tooltip: '購入履歴を復元',
-              padding: EdgeInsets.all(8),
             ),
-          // 【修正】プレミアムボタンを小さく調整
-          if (!DebugConfig.SCREENSHOT_MODE) ...[
-            if (!_appState.isPremium)
-              Container(
-                margin: EdgeInsets.only(right: 4),
-                child: TextButton.icon(
-                  onPressed: _showPremiumDialog,
-                  icon: Icon(
-                    Icons.star, 
-                    size: 16,
-                    color: Colors.white,
-                  ),
-                  label: Text(
-                    MediaQuery.of(context).size.width < 340 ? 'Pro' : 'Premium',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.amber.shade600,
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-          // プレミアム状態表示
+          // プレミアム状態表示（購入後のみ）
           if (_appState.isPremium)
             Container(
               margin: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.amber.shade600,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.star, color: Colors.white, size: 14),
+                  Icon(Icons.star, color: Colors.white, size: 16),
                   SizedBox(width: 4),
                   Text(
-                    'Pro',
+                    'Premium',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
