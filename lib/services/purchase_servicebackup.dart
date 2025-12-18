@@ -334,7 +334,8 @@ class PurchaseService {
             _buildFeatureItem('✓ 広告完全非表示'),
             _buildFeatureItem('✓ プラン比較機能(最大10件)'),
             _buildFeatureItem('✓ 詳細返済シミュレーション'),
-            _buildFeatureItem('✓ ボーナス返済・繰上げ返済'),
+            _buildFeatureItem('✓ ボーナス返済・繰上返済'),
+            _buildFeatureItem('✓ 借入診断機能'),
             _buildFeatureItem('✓ データ保存・削除機能'),
             if (!_isPremium) ...[
               SizedBox(height: 16),

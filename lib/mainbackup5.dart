@@ -254,63 +254,6 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Future<void> _handleRestorePurchases() async {
-    // ローディングダイアログを表示
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        content: Row(
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 16),
-            Text('購入履歴を確認中...'),
-          ],
-        ),
-      ),
-    );
-
-    try {
-      // 購入履歴を復元
-      bool restored = await _purchaseService.restorePurchases();
-      
-      // ローディングダイアログを閉じる
-      Navigator.of(context).pop();
-      
-      // 結果に応じてメッセージを表示
-      if (restored) {
-        setState(() {
-          // プレミアム状態を更新
-          _appState.isPremium = true;
-        });
-        await _appState.savePremiumStatus(true);
-        _showSuccessDialog();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('復元可能な購入履歴が見つかりませんでした'),
-            backgroundColor: Colors.orange,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        );
-      }
-    } catch (e) {
-      // ローディングダイアログを閉じる
-      Navigator.of(context).pop();
-      
-      // エラーメッセージを表示
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('復元中にエラーが発生しました: $e'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
-    }
-  }
-
   Future<void> _handlePremiumPurchase() async {
     // ローディングダイアログを表示
     showDialog(
@@ -565,94 +508,63 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        // 【修正】タイトルをシンプルなTextウィジェットに変更
-        title: Text(
-          MediaQuery.of(context).size.width < 340 
-              ? 'ローン計算' 
-              : 'ローンシミュレータ',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: MediaQuery.of(context).size.width < 375 ? 16 : 18,
-          ),
-        ),
-        // 【修正】アイコンを別途leadingで表示
-        leading: Container(
-          margin: EdgeInsets.all(8),
-          child: Icon(
-            Icons.calculate, 
-            color: Colors.white, 
-            size: MediaQuery.of(context).size.width < 375 ? 20 : 24,
-          ),
+        title: Row(
+          children: [
+            Icon(Icons.calculate, color: Colors.white, size: 28),
+            SizedBox(width: 8),
+            Text(
+              'ローンシミュレータ',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
         backgroundColor: Colors.indigo.shade600,
         elevation: 0,
         centerTitle: false,
         actions: [
-          // 情報アイコン（プライバシーポリシー） - アイコンサイズを小さく
+          // 情報アイコン（プライバシーポリシー）
           IconButton(
-            icon: Icon(Icons.info_outline, size: 20),
+            icon: Icon(Icons.info_outline),
             onPressed: _showPrivacyPolicy,
             tooltip: 'プライバシーポリシー',
-            padding: EdgeInsets.all(8),
           ),
-          // 復元ボタン（プレミアム未購入時のみ表示） - アイコンサイズを小さく
-          if (!_appState.isPremium)
-            IconButton(
-              icon: Icon(Icons.restore, size: 20),
-              onPressed: _handleRestorePurchases,
-              tooltip: '購入履歴を復元',
-              padding: EdgeInsets.all(8),
-            ),
-          // 【修正】プレミアムボタンを小さく調整
           if (!DebugConfig.SCREENSHOT_MODE) ...[
             if (!_appState.isPremium)
               Container(
-                margin: EdgeInsets.only(right: 4),
-                child: TextButton.icon(
+                margin: EdgeInsets.only(right: 8),
+                child: ElevatedButton.icon(
                   onPressed: _showPremiumDialog,
-                  icon: Icon(
-                    Icons.star, 
-                    size: 16,
-                    color: Colors.white,
-                  ),
-                  label: Text(
-                    MediaQuery.of(context).size.width < 340 ? 'Pro' : 'Premium',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.amber.shade600,
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                  icon: Icon(Icons.star, size: 20),
+                  label: Text('Premium'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
                 ),
               ),
           ],
-          // プレミアム状態表示
           if (_appState.isPremium)
             Container(
-              margin: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              margin: EdgeInsets.all(8),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.amber.shade600,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.star, color: Colors.white, size: 14),
+                  Icon(Icons.star, color: Colors.white, size: 16),
                   SizedBox(width: 4),
                   Text(
-                    'Pro',
+                    'プレミアム',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -709,10 +621,10 @@ class _MainScreenState extends State<MainScreen> {
           elevation: 8,
           selectedLabelStyle: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: MediaQuery.of(context).size.width < 375 ? 10 : 12,
+            fontSize: 12,
           ),
           unselectedLabelStyle: TextStyle(
-            fontSize: MediaQuery.of(context).size.width < 375 ? 9 : 11,
+            fontSize: 11,
           ),
           items: [
             BottomNavigationBarItem(
@@ -831,7 +743,7 @@ class _MainScreenState extends State<MainScreen> {
             ),
             SizedBox(height: 24),
             Text(
-              '${featureName}機能',
+              '$featureName機能',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,

@@ -159,6 +159,42 @@ class PurchaseService {
     }
   }
 
+  // 購入復元（公開メソッド）
+  Future<bool> restorePurchases() async {
+    print('🔱 ユーザー要求による購入復元開始');
+    
+    try {
+      bool available = await _inAppPurchase.isAvailable();
+      if (!available) {
+        print('❌ アプリ内課金が利用できません');
+        return false;
+      }
+
+      // 復元前の状態を記録
+      bool wasAlreadyPremium = _isPremium;
+      
+      // ストアから購入履歴を復元
+      await _inAppPurchase.restorePurchases();
+      
+      // 復元処理完了まで最大5秒待機
+      for (int i = 0; i < 5; i++) {
+        await Future.delayed(Duration(seconds: 1));
+        if (_isPremium && !wasAlreadyPremium) {
+          print('✅ 購入履歴の復元が成功しました！');
+          return true;
+        }
+      }
+      
+      // 復元できなかった場合
+      print('ℹ️ 復元可能な購入履歴が見つかりませんでした');
+      return false;
+      
+    } catch (error) {
+      print('❌ 購入復元エラー: $error');
+      return false;
+    }
+  }
+
   // プレミアムプランの購入
   Future<bool> purchasePremium() async {
     print('📱 プレミアム購入処理開始');
@@ -233,12 +269,6 @@ class PurchaseService {
       print('❌ 購入エラー: $error');
       return false;
     }
-  }
-
-  // 購入復元
-  Future<void> restorePurchases() async {
-    print('📱 購入復元開始');
-    await _restorePurchases();
   }
 
   // プロダクト詳細を取得
