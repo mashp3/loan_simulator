@@ -2,7 +2,7 @@ name: loan_simulator_new
 description: "ローンシミュレータアプリ - 広告・課金機能付き"
 publish_to: 'none'
 
-version: 1.0.0+46
+version: 1.0.0+48
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

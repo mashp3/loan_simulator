@@ -565,7 +565,7 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        // タイトルを完全表示できるよう最適化
+        // 【修正】タイトルを完全表示できるよう最適化
         title: Text(
           'ローンシミュレータ',
           style: TextStyle(
@@ -586,7 +586,7 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: Colors.indigo.shade600,
         elevation: 0,
         centerTitle: false,
-        // 必要最小限のボタンのみ
+        // 【修正】上部プレミアムボタンを廃止、必要最小限のボタンのみ
         actions: [
           // 情報アイコン（プライバシーポリシー）
           IconButton(
@@ -601,20 +601,29 @@ class _MainScreenState extends State<MainScreen> {
               onPressed: _handleRestorePurchases,
               tooltip: '購入履歴を復元',
             ),
-          // 【修正】プレミアム状態表示 - スターのみの円形ボタン
+          // プレミアム状態表示（購入後のみ）
           if (_appState.isPremium)
             Container(
-              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-              width: 36,
-              height: 36,
+              margin: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.amber.shade600,
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(
-                Icons.star, 
-                color: Colors.white, 
-                size: 20,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.star, color: Colors.white, size: 16),
+                  SizedBox(width: 4),
+                  Text(
+                    'Premium',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
         ],
