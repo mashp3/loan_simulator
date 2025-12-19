@@ -8,12 +8,12 @@ import 'repayment_schedule_page.dart';
 
 class LoanCalculatorScreen extends StatefulWidget {
   final AppState appState;
-  final AdService? adService; // 【修正】オプショナル化
+  final AdService adService;
 
   const LoanCalculatorScreen({
     Key? key,
     required this.appState,
-    this.adService, // 【修正】requiredを削除
+    required this.adService,
   }) : super(key: key);
 
   @override
@@ -479,13 +479,13 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> with Automa
           controller: _scrollController,
           child: Column(
             children: [
-              // 【重要】広告表示を削除 - main.dartで一元管理
-              // if (!widget.appState.isPremium) widget.adService.getBannerAdWidget(),
+              // 広告表示エリア
+              if (!widget.appState.isPremium) widget.adService.getBannerAdWidget(),
 
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // 入力フォーム 
+                  // 入力フォーム
                   _buildStyledCard(
                     color: Colors.white,
                     child: Column(

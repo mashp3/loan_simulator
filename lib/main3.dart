@@ -483,7 +483,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  // 【重要】広告表示 - main.dartでのみ一元管理
+  // 【修正】広告表示 - 一箇所のみ、重複防止
   Widget _buildBannerAd() {
     // プレミアムユーザーまたは広告非表示設定の場合
     if (DebugConfig.HIDE_ADS || _appState.isPremium) {
@@ -624,7 +624,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: Column(
         children: [
-          // 【重要】広告は main.dart で一箇所のみ表示
+          // 【重要】広告は一箇所のみで表示
           if (!_appState.isPremium) _buildBannerAd(),
           Expanded(
             child: PageView(
@@ -635,8 +635,8 @@ class _MainScreenState extends State<MainScreen> {
                 });
               },
               children: [
-                // 【重要】LoanCalculatorScreenにはadServiceを渡さない（重複防止）
-                LoanCalculatorScreen(appState: _appState),
+                // 【修正】LoanCalculatorScreenには広告サービスを渡さない（重複防止）
+                LoanCalculatorScreen(appState: _appState, adService: null),
                 _appState.isPremium
                     ? ComparisonScreen(appState: _appState)
                     : _buildLockedScreen('プラン比較'),
