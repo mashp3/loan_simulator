@@ -343,8 +343,8 @@ class _MainScreenState extends State<MainScreen> {
         
         _showSuccessDialog();
       } else {
-        // 【修正】購入失敗メッセージでApp Storeに変更
-        _showErrorDialog('購入処理に失敗しました。\n\n考えられる原因：\n• ネットワーク接続の問題\n• App Storeの一時的な問題\n• プロダクト設定の問題\n\n時間をおいて再度お試しください。');
+        // 購入失敗
+        _showErrorDialog('購入処理に失敗しました。\n\n考えられる原因：\n• ネットワーク接続の問題\n• Google Playの一時的な問題\n• プロダクト設定の問題\n\n時間をおいて再度お試しください。');
       }
     } catch (e) {
       // ローディングダイアログを閉じる
@@ -483,11 +483,14 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  // 【重要】広告表示 - main.dartでのみ一元管理
   Widget _buildBannerAd() {
+    // プレミアムユーザーまたは広告非表示設定の場合
     if (DebugConfig.HIDE_ADS || _appState.isPremium) {
       return Container();
     }
 
+    // 広告サービスから単一のキャッシュされたウィジェットを取得
     return _adService.getBannerAdWidget();
   }
 
@@ -565,73 +568,63 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(Icons.calculate, color: Colors.white, size: 28),
-            SizedBox(width: 8),
-            Text(
-              'ローンシミュレータ',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+        // タイトルを完全表示できるよう最適化
+        title: Text(
+          'ローンシミュレータ',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: MediaQuery.of(context).size.width < 375 ? 16 : 18,
+          ),
+        ),
+        // 左側の計算アイコン
+        leading: Container(
+          margin: EdgeInsets.all(8),
+          child: Icon(
+            Icons.calculate, 
+            color: Colors.white, 
+            size: MediaQuery.of(context).size.width < 375 ? 20 : 24,
+          ),
         ),
         backgroundColor: Colors.indigo.shade600,
         elevation: 0,
         centerTitle: false,
+        // 必要最小限のボタンのみ
         actions: [
           // 情報アイコン（プライバシーポリシー）
           IconButton(
-            icon: Icon(Icons.info_outline),
+            icon: Icon(Icons.info_outline, size: 22),
             onPressed: _showPrivacyPolicy,
             tooltip: 'プライバシーポリシー',
           ),
-          if (!DebugConfig.SCREENSHOT_MODE) ...[
-            if (!_appState.isPremium)
-              Container(
-                margin: EdgeInsets.only(right: 8),
-                child: ElevatedButton.icon(
-                  onPressed: _showPremiumDialog,
-                  icon: Icon(Icons.star, size: 20),
-                  label: Text('Premium'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  ),
-                ),
-              ),
-          ],
+          // 復元ボタン（プレミアム未購入時のみ表示）
+          if (!_appState.isPremium)
+            IconButton(
+              icon: Icon(Icons.restore, size: 22),
+              onPressed: _handleRestorePurchases,
+              tooltip: '購入履歴を復元',
+            ),
+          // 【修正】プレミアム状態表示 - スターのみの円形ボタン
           if (_appState.isPremium)
             Container(
-              margin: EdgeInsets.all(8),
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: Colors.amber.shade600,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.star, color: Colors.white, size: 16),
-                  SizedBox(width: 4),
-                  Text(
-                    'プレミアム',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+              child: Icon(
+                Icons.star, 
+                color: Colors.white, 
+                size: 20,
               ),
             ),
         ],
       ),
       body: Column(
         children: [
+          // 【重要】広告は main.dart で一箇所のみ表示
           if (!_appState.isPremium) _buildBannerAd(),
           Expanded(
             child: PageView(
@@ -642,7 +635,8 @@ class _MainScreenState extends State<MainScreen> {
                 });
               },
               children: [
-                LoanCalculatorScreen(appState: _appState, adService: _adService),
+                // 【重要】LoanCalculatorScreenにはadServiceを渡さない（重複防止）
+                LoanCalculatorScreen(appState: _appState),
                 _appState.isPremium
                     ? ComparisonScreen(appState: _appState)
                     : _buildLockedScreen('プラン比較'),
@@ -678,10 +672,10 @@ class _MainScreenState extends State<MainScreen> {
           elevation: 8,
           selectedLabelStyle: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 12,
+            fontSize: MediaQuery.of(context).size.width < 375 ? 10 : 12,
           ),
           unselectedLabelStyle: TextStyle(
-            fontSize: 11,
+            fontSize: MediaQuery.of(context).size.width < 375 ? 9 : 11,
           ),
           items: [
             BottomNavigationBarItem(
