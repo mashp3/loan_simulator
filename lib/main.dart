@@ -588,44 +588,27 @@ class _MainScreenState extends State<MainScreen> {
             onPressed: _showPrivacyPolicy,
             tooltip: 'プライバシーポリシー',
           ),
-          if (!DebugConfig.SCREENSHOT_MODE) ...[
-            if (!_appState.isPremium)
-              Container(
-                margin: EdgeInsets.only(right: 8),
-                child: ElevatedButton.icon(
-                  onPressed: _showPremiumDialog,
-                  icon: Icon(Icons.star, size: 20),
-                  label: Text('Premium'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  ),
-                ),
-              ),
-          ],
+          // 復元ボタン（プレミアム未購入時のみ表示）
+          if (!_appState.isPremium)
+            IconButton(
+              icon: Icon(Icons.restore, size: 22),
+              onPressed: _handleRestorePurchases,
+              tooltip: '購入履歴を復元',
+            ),
+          // 【修正】プレミアム状態表示 - スターのみの円形ボタン
           if (_appState.isPremium)
             Container(
-              margin: EdgeInsets.all(8),
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: Colors.amber.shade600,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.star, color: Colors.white, size: 16),
-                  SizedBox(width: 4),
-                  Text(
-                    'プレミアム',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+              child: Icon(
+                Icons.star, 
+                color: Colors.white, 
+                size: 20,
               ),
             ),
         ],
@@ -642,7 +625,7 @@ class _MainScreenState extends State<MainScreen> {
                 });
               },
               children: [
-                LoanCalculatorScreen(appState: _appState, adService: _adService),
+                LoanCalculatorScreen(appState: _appState),
                 _appState.isPremium
                     ? ComparisonScreen(appState: _appState)
                     : _buildLockedScreen('プラン比較'),
